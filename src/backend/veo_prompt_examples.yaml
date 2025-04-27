@@ -1,0 +1,322 @@
+# Stores reference prompts for Veo video generation
+
+# Scene Prompt Examples
+scene_prompt_examples:
+  basic:
+    - scene_concept: "Desperate Man on Rotary Phone"
+      prompt: |
+        The camera dollies to show a close up of a desperate man in a green trench coat
+        that's making a call on a rotary-style wall phone with a green neon light and
+        a movie scene.
+      analysis: |
+        First attempt based on the core idea, establishing the scene but lacking
+        specific cinematic detail.
+
+    - scene_concept: "Cute Snow Leopard Creature Walking"
+      prompt: |
+        A cute creature with snow leopard-like fur is walking in winter forest,
+        3D cartoon style render.
+      analysis: |
+        A basic prompt establishing the subject, context, and style, but lacks
+        specific action and emotional detail.
+
+    - scene_concept:
+      prompt: |
+        This medium shot, with a shallow depth of field, portrays a cute cartoon girl with wavy brown hair, 
+        sitting upright in a 1980s kitchen. Her hair is medium length and wavy. She has a small, slightly 
+        upturned nose, and small, rounded ears. She is very animated and excited as she talks to the camera.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+         A fast-tracking shot down an suburban residential street lined with trees. Daytime with a clear blue sky. 
+        Saturated colors, high contrast
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        Timelapse of the northern lights dancing across the Arctic sky, stars twinkling, snow-covered landscape
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        An aerial shot of a lighthouse standing tall on a rocky cliff, its beacon cutting through the early dawn,
+        waves crash against the rocks below
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        Many spotted jellyfish pulsating under water. Their bodies are transparent and glowing in deep ocean
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        extreme close-up with a shallow depth of field of a puddle in a street. reflecting a busy futuristic 
+        Tokyo city with bright neon signs, night, lens flare
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        Drone shot along the Hawaii jungle coastline, sunny day. Kayaks in the water
+      analysis:
+
+
+  detailed: # Prompts with significantly more detail
+    - scene_concept: "Melting Icicles on Rock Wall"
+      prompt: |
+        Close up shot (composition) of melting icicles (subject) on a frozen rock wall
+        (context) with cool blue tones (ambiance), zoomed in (camera motion)
+        maintaining close-up detail of water drips (action).
+      analysis: |
+        Demonstrates combining multiple prompt elements (subject, context, action,
+        style, camera, composition, ambiance) into a single detailed prompt.
+    - scene_concept: "Desperate Man on Rotary Phone"
+      prompt: |
+        A close-up cinematic shot follows a desperate man in a weathered green trench
+        coat as he dials a rotary phone mounted on a gritty brick wall, bathed in the
+        eerie glow of a green neon sign. The camera dollies in, revealing the tension
+        in his jaw and the desperation etched on his face as he struggles to make
+        the call. The shallow depth of field focuses on his furrowed brow and the
+        black rotary phone, blurring the background into a sea of neon colors and
+        indistinct shadows, creating a sense of urgency and isolation.
+      analysis: |
+        Adding more detail results in a video that is more focused with a richer
+        environment, emphasizing cinematic quality and mood.
+    - scene_concept: "Cute Snow Leopard Creature Walking"
+      prompt: |
+        Create a short 3D animated scene in a joyful cartoon style. A cute creature
+        with snow leopard-like fur, large expressive eyes, and a friendly, rounded
+        form happily prances through a whimsical winter forest. The scene should
+        feature rounded, snow-covered trees, gentle falling snowflakes, and warm
+        sunlight filtering through the branches. The creature's bouncy movements
+        and wide smile should convey pure delight. Aim for an upbeat, heartwarming
+        tone with bright, cheerful colors and playful animation. Consider adding
+        subtle, whimsical sound effects to enhance the joyful winter atmosphere.
+      analysis: |
+        Adding more detail about the creature's appearance, specific actions
+        (prances), expression (smile), environment details, and mood (joyful,
+        heartwarming) leads to output closer to the desired intent.
+
+    - scene_concept:
+      prompt: |
+        A cinematic shot captures a fluffy Cockapoo, perched atop a vibrant pink flamingo float, in a sun-drenched 
+        Los Angeles swimming pool. The crystal-clear water sparkles under the bright California sun, reflecting the 
+        playful scene. The Cockapoo's fur, a soft blend of white and apricot, is highlighted by the golden sunlight, 
+        its floppy ears gently swaying in the breeze. Its happy expression and wagging tail convey pure joy and summer
+        bliss. The vibrant pink flamingo adds a whimsical touch, creating a picture-perfect image of carefree fun in 
+        the LA sunshine.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        A cinematic, high-action tracking shot follows an incredibly cute dachshund wearing swimming goggles as it 
+        leaps into a crystal-clear pool. The camera plunges underwater with the dog, capturing the joyful moment of 
+        submersion and the ensuing flurry of paddling with adorable little paws. Sunlight filters through the water, 
+        illuminating the dachshund's sleek, wet fur and highlighting the determined expression on its face. 
+        The shot is filled with the vibrant blues and greens of the pool water, creating a dynamic and visually 
+        stunning sequence that captures the pure joy and energy of the swimming dachshund.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+      analysis:
+
+  extreme_detailed:
+    - scene_concept: "Desperate Man on Rotary Phone"
+      prompt: |
+        A video with smooth motion that dollies in on a desperate man in a green
+        trench coat, using a vintage rotary phone against a wall bathed in an eerie
+        green neon glow. The camera starts from a medium distance, slowly moving
+        closer to the man's face, revealing his frantic expression and the sweat on
+        his brow as he urgently dials the phone. The focus is on the man's hands,
+        his fingers fumbling with the dial as he desperately tries to connect. The
+        green neon light casts long shadows on the wall, adding to the tense
+        atmosphere. The scene is framed to emphasize the isolation and desperation
+        of the man, highlighting the stark contrast between the vibrant glow of the
+        neon and the man's grim determination.
+      analysis: |
+        Further detail refinement gave the subject a realistic expression and
+        created an intense and vibrant scene with specific focus and atmosphere.
+
+    - scene_concept:
+      prompt: |
+        An extreme close-up shot focuses on the face of a female DJ, her beautiful, voluminous black curly 
+        hair framing her features as she becomes completely absorbed in the music. Her eyes are closed, 
+        lost in the rhythm, and a slight smile plays on her lips. The camera captures the subtle movements 
+        of her head as she nods and sways to the beat, her body instinctively responding to the music pulsating 
+        through her headphones and out into the crowd. The shallow depth of field blurs the background. 
+        She’s surrounded by vibrant neon colors. The close-up emphasizes her captivating presence and 
+        the power of music to transport and transcend.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        The camera floats gently through rows of pastel-painted wooden beehives, buzzing honeybees gliding in and 
+        out of frame. The motion settles on the refined farmer standing at the center, his pristine white beekeeping 
+        suit gleaming in the golden afternoon light. He lifts a jar of honey, tilting it slightly to catch the light. 
+        Behind him, tall sunflowers sway rhythmically in the breeze, their petals glowing in the warm sunlight. 
+        The camera tilts upward to reveal a retro farmhouse with mint-green shutters, its walls dappled with shadows 
+        from swaying trees. Shot with a 35mm lens on Kodak Portra 400 film, the golden light creates rich textures 
+        on the farmer’s gloves, marmalade jar, and weathered wood of the beehives.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        The sun rises slowly behind a perfectly plated breakfast scene. Thick, golden maple syrup pours in 
+        slow motion over a stack of fluffy pancakes, each one releasing a soft, warm steam cloud. 
+        A close-up of crispy bacon sizzles, sending tiny embers of golden grease into the air. Coffee pours in smooth, 
+        swirling motion into a crystal-clear cup, filling it with deep brown layers of crema. 
+        Scene ends with a camera swoop into a fresh-cut orange, revealing its bright, juicy segments in 
+        stunning macro detail.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        Low-angle tracking shot, 18mm lens. The car drifts, leaving trails of light and tire smoke, creating 
+        a visually striking and abstract composition. The camera tracks low, capturing the sleek, olive green 
+        muscle car as it approaches a corner. As the car executes a dramatic drift, the shot becomes more stylized. 
+        The spinning wheels and billowing tire smoke, illuminated by the surrounding city lights and lens flare, 
+        create streaks of light and color against the dark asphalt. The cityscape – yellow cabs, neon signs, 
+        and pedestrians – becomes a blurred, abstract backdrop. Volumetric lighting adds depth and atmosphere, 
+        transforming the scene into a visually striking composition of motion, light, and urban energy.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        Cinematic shot of a female doctor in a dark yellow hazmat suit, illuminated by the harsh fluorescent
+        light of a laboratory. The camera slowly zooms in on her face, panning gently to emphasize the worry and anxiety
+        etched across her brow. She is hunched over a lab table, peering intently into a microscope, her gloved hands
+        carefully adjusting the focus. The muted color palette of the scene, dominated by the sickly yellow of the suit
+        and the sterile steel of the lab, underscores the gravity of the situation and the weight of the unknown
+        she is facing. The shallow depth of field focuses on the fear in her eyes, reflecting the immense pressure and
+        responsibility she bears.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        The camera spirals down through an infinite network of glowing threads, pulsating with multicolored light. 
+        The setting feels alive, each thread thrumming with faint whispers and bursts of imagery—fractals, mythological 
+        beasts, and celestial maps. The courier darts through the maze, their silhouette painted with the kaleidoscopic 
+        glow of the fibers. As they weave between strands, their every touch triggers animations—one a glowing phoenix, 
+        another a blooming lotus—until they stumble upon a massive, golden thread. It flares, and a holographic figure 
+        emerges: a younger version of themselves, surrounded by fiery glyphs. The scene shifts between soft, glowing 
+        pastels and brilliant, fiery tones, blending hand-drawn 2D animation with dynamic light effects, captured in 
+        fluid, sweeping motion.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        A low-angle shot captures a flock of pink flamingos gracefully wading in a lush, tranquil lagoon. 
+        The vibrant pink of their plumage contrasts beautifully with the verdant green of the surrounding vegetation 
+        and the crystal-clear turquoise water. Sunlight glints off the water's surface, creating shimmering reflections 
+        that dance on the flamingos' feathers. The birds' elegant, curved necks are submerged as they walk through the 
+        shallow water, their movements creating gentle ripples that spread across the lagoon. The composition 
+        emphasizes the serenity and natural beauty of the scene, highlighting the delicate balance of the ecosystem and 
+        the inherent grace of these magnificent birds. The soft, diffused light of early morning bathes the entire 
+        scene in a warm, ethereal glow.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+        The camera moves in a slow dolly shot, revealing the opulence of a Renaissance palace chamber adorned with 
+        gold-inlaid furniture, velvet drapes, and chandeliers casting soft, flickering light. A queen sits motionless 
+        at a gilded desk, her crimson silk gown cascading onto the floor like spilled blood. On the desk lies an 
+        unsigned letter, its edges curled with age. The camera frames her from behind, catching the reflection of her 
+        stoic face in a massive, ornate mirror. In the background, courtiers murmur, their silhouettes dancing like 
+        ghosts in the candlelight. The room feels heavy, every gilded detail amplifying an air of betrayal and paranoia. 
+        The color palette alternates between deep, regal reds and cold golds, with chiaroscuro lighting intensifying 
+        the drama. Shot on 70mm film for rich texture, evoking the grandeur of historical masterpieces.
+      analysis:
+
+    - scene_concept:
+      prompt: |
+      analysis:
+
+
+# Element-Focused Examples
+element_examples:
+  Subject:
+    - scene_concept: "White Concrete Apartment Building"
+      prompt: |
+        An architectural rendering of a white concrete apartment building with flowing
+        organic shapes, seamlessly blending with lush greenery and futuristic elements
+      analysis: |
+        Example focusing on describing the main subject with specific details about
+        its form, material, and integration with surroundings.
+  Context:
+    - scene_concept: "Satellite in Outer Space"
+      prompt: |
+        A satellite floating through outer space with the moon and some stars in the
+        background.
+      analysis: |
+        Example emphasizing the background or context where the subject is placed
+        (outer space with celestial bodies).
+  Action:
+    - scene_concept: "Woman Walking on Beach at Sunset"
+      prompt: |
+        A wide shot of a woman walking along the beach, looking content and relaxed
+        and looking towards the horizon at sunset.
+      analysis: |
+        Example specifying what the subject is doing, including her demeanor and
+        gaze direction.
+  Style:
+    - scene_concept: "Couple Walking - Film Noir"
+      prompt: |
+        Film noir style, man and woman walk on the street, mystery, cinematic, black
+        and white.
+      analysis: |
+        Example using specific keywords (`Film noir`, `cinematic`, `black and white`)
+        to define the artistic style and mood.
+  Camera_Motion:
+    - scene_concept: "POV Driving in Rain at Night"
+      prompt: |
+        A POV shot from a vintage car driving in the rain, Canada at night, cinematic.
+      analysis: |
+        Example specifying the camera's perspective and action (`POV shot`).
+  Composition:
+    - scene_concept: "Eye Reflection Close-up"
+      prompt: |
+        Extreme close-up of a an eye with city reflected in it.
+      analysis: |
+        Example demonstrating framing the shot (`Extreme close-up`) to focus on a
+        specific detail.
+    - scene_concept: "Surfer Wide Shot at Sunset"
+      prompt: |
+        Create a video of a wide shot of surfer walking on a beach with a surfboard,
+        beautiful sunset, cinematic.
+      analysis: |
+        Example demonstrating framing the shot (`wide shot`) to capture the subject
+        within a larger environment.
+  Ambiance:
+    - scene_concept: "Girl with Golden Retriever Puppy"
+      prompt: |
+        A close-up of a girl holding adorable golden retriever puppy in the park,
+        sunlight.
+      analysis: |
+        Example using lighting (`sunlight`) to contribute to the scene's mood and
+        visual feel.
+    - scene_concept: "Sad Woman on Bus in Rain"
+      prompt: |
+        Cinematic close-up shot of a sad woman riding a bus in the rain, cool blue
+        tones, sad mood.
+      analysis: |
+        Example using color (`cool blue tones`) and explicit mood keywords (`sad
+        mood`) to define the atmosphere.
+
+
+# Negative Prompt Examples
+negative_prompt_examples:
+  - scene_concept: "Animated Oak Tree in Wind"
+    base_prompt: |
+      Generate a short, stylized animation of a large, solitary oak tree with leaves
+      blowing vigorously in a strong wind. The tree should have a slightly
+      exaggerated, whimsical form, with dynamic, flowing branches. The leaves should
+      display a variety of autumn colors, swirling and dancing in the wind. The
+      animation should feature a gentle, atmospheric soundtrack and use a warm,
+      inviting color palette.
+    negative_prompt_keywords: "urban background, man-made structures, dark, stormy,
+      or threatening atmosphere"
+    analysis: |
+      Illustrates using negative keywords to explicitly discourage the model from
+      generating unwanted elements or atmospheres, refining the output based on the
+      positive description.

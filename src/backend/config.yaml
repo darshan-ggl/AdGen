@@ -1,0 +1,64 @@
+project:
+  id: jarvis-365810
+  region: us-central1
+  location: global
+
+llm:
+  gemini:
+    model_name: "gemini-2.0-flash"
+    batch_size: 3500  # token count
+
+  imagen:
+    model_name: "imagen-3.0-generate-002"
+
+veo:
+  prompts:
+    - The camera moves in a slow dolly shot, revealing the opulence of a Renaissance palace chamber adorned with
+      gold-inlaid furniture, velvet drapes, and chandeliers casting soft, flickering light. A queen sits motionless
+      at a gilded desk, her crimson silk gown cascading onto the floor like spilled blood. On the desk lies an
+      unsigned letter, its edges curled with age. The camera frames her from behind, catching the reflection of her
+      stoic face in a massive, ornate mirror. In the background, courtiers murmur, their silhouettes dancing like
+      ghosts in the candlelight. The room feels heavy, every gilded detail amplifying an air of betrayal and paranoia.
+      The color palette alternates between deep, regal reds and cold golds, with chiaroscuro lighting intensifying
+      the drama. Shot on 70mm film for rich texture, evoking the grandeur of historical masterpieces.
+    - A low-angle shot captures a flock of pink flamingos gracefully wading in a lush, tranquil lagoon.
+      The vibrant pink of their plumage contrasts beautifully with the verdant green of the surrounding vegetation
+      and the crystal-clear turquoise water. Sunlight glints off the water's surface, creating shimmering reflections
+      that dance on the flamingos' feathers. The birds' elegant, curved necks are submerged as they walk through the
+      shallow water, their movements creating gentle ripples that spread across the lagoon. The composition
+      emphasizes the serenity and natural beauty of the scene, highlighting the delicate balance of the ecosystem and
+      the inherent grace of these magnificent birds. The soft, diffused light of early morning bathes the entire
+      scene in a warm, ethereal glow.
+    - The camera spirals down through an infinite network of glowing threads, pulsating with multicolored light.
+      The setting feels alive, each thread thrumming with faint whispers and bursts of imagery—fractals, mythological
+      beasts, and celestial maps. The courier darts through the maze, their silhouette painted with the kaleidoscopic
+      glow of the fibers. As they weave between strands, their every touch triggers animations—one a glowing phoenix,
+      another a blooming lotus—until they stumble upon a massive, golden thread. It flares, and a holographic figure
+      emerges - a younger version of themselves, surrounded by fiery glyphs. The scene shifts between soft, glowing
+      pastels and brilliant, fiery tones, blending hand-drawn 2D animation with dynamic light effects, captured in
+      fluid, sweeping motion.
+    - Cinematic shot of a female doctor in a dark yellow hazmat suit, illuminated by the harsh fluorescent
+      light of a laboratory. The camera slowly zooms in on her face, panning gently to emphasize the worry and anxiety
+      etched across her brow. She is hunched over a lab table, peering intently into a microscope, her gloved hands
+      carefully adjusting the focus. The muted color palette of the scene, dominated by the sickly yellow of the suit
+      and the sterile steel of the lab, underscores the gravity of the situation and the weight of the unknown
+      she is facing. The shallow depth of field focuses on the fear in her eyes, reflecting the immense pressure and
+      responsibility she bears.
+    - Low-angle tracking shot, 18mm lens. The car drifts, leaving trails of light and tire smoke, creating
+      a visually striking and abstract composition. The camera tracks low, capturing the sleek, olive green
+      muscle car as it approaches a corner. As the car executes a dramatic drift, the shot becomes more stylized.
+      The spinning wheels and billowing tire smoke, illuminated by the surrounding city lights and lens flare,
+      create streaks of light and color against the dark asphalt. The cityscape – yellow cabs, neon signs,
+      and pedestrians – becomes a blurred, abstract backdrop. Volumetric lighting adds depth and atmosphere,
+      transforming the scene into a visually striking composition of motion, light, and urban energy.
+    - The sun rises slowly behind a perfectly plated breakfast scene. Thick, golden maple syrup pours in
+      slow motion over a stack of fluffy pancakes, each one releasing a soft, warm steam cloud.
+      A close-up of crispy bacon sizzles, sending tiny embers of golden grease into the air. Coffee pours in smooth,
+      swirling motion into a crystal-clear cup, filling it with deep brown layers of crema.
+      Scene ends with a camera swoop into a fresh-cut orange, revealing its bright, juicy segments in
+      stunning macro detail.
+
+
+output:
+  bucket_name: "veo2-exp"
+  video_dir: f"gs://{{ output.bucket_name }}/translation-mvp-exp-results/output_vtt"
