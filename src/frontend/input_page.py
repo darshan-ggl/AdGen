@@ -9,16 +9,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def render_input_page() -> Dict[str, Any]:
+# Assuming page names are defined in app.py
+# from app import INPUT_PAGE, OUTPUT_PAGE # Example if you want to import constants
+
+def render_input_page() -> Optional[Dict[str, Any]]:
     """
-    Renders the input page for the AI Ad Generator with further modifications.
+    Renders the input page for the AI Ad Generator.
 
     Collects user input regarding the ad idea, product details,
     and technical specifications for video generation.
 
     Returns:
-        Dict[str, Any]: A dictionary containing all the collected input data
-                        if the form is submitted, otherwise an empty dictionary.
+        Optional[Dict[str, Any]]: A dictionary containing all the collected input data
+                                   if the form is submitted and valid, otherwise None.
     """
     logger.info("Rendering input page...")
 
@@ -103,6 +106,12 @@ def render_input_page() -> Dict[str, Any]:
     # Check if the form was submitted
     if submit_button:
         logger.info("Form submitted. Collecting input data.")
+        # Basic validation
+        if not product_ad_idea:
+            st.error("Please provide a product ad idea.")
+            logger.warning("Form submitted without ad idea.")
+            return None  # Return None if required fields are missing
+
         input_data = {
             "product_ad_idea": product_ad_idea,
             "product_name": product_name,
@@ -113,18 +122,20 @@ def render_input_page() -> Dict[str, Any]:
             "person_generation": person_generation,
             "uploaded_image": uploaded_image  # This will be a file-like object
         }
-        # st.session_state['ad_input'] = input_data # Example using session state
-        logger.info("Input data collected.")
+        logger.info("Input data collected and validated.")
         return input_data
     else:
         logger.info("Input page rendered. Waiting for submission.")
-        return {}
+        return None  # Return None if not submitted
 
 
 if __name__ == '__main__':
     st.set_page_config(layout="wide")
+    st.title("Input Page Standalone Test")
     collected_data = render_input_page()
 
     if collected_data:
         st.subheader("Collected Data (for demonstration):")
         st.json(collected_data)
+        # In a real app, this is where you'd transition to the next page
+        # and pass collected_data to the backend for processing.
