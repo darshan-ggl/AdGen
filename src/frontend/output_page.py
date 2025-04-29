@@ -14,7 +14,7 @@ def initialize_scene_state(output_data: List[Dict[str, Any]]):
     """
     Initializes session state for each scene based on output data (prompts/durations).
     """
-    if output_data is None or not isinstance(output_data, list):
+    if not isinstance(output_data, list):
         logger.error("Attempted to initialize scene state with invalid output_data.")
         st.error("Could not initialize scene data. Please try generating again.")
         if 'scene_states' in st.session_state:
@@ -36,6 +36,10 @@ def initialize_scene_state(output_data: List[Dict[str, Any]]):
         })
     if 'regen_count' not in st.session_state:
         st.session_state['regen_count'] = 0
+    # Initialize state for back button confirmation
+    if 'show_back_confirm' not in st.session_state:
+        st.session_state['show_back_confirm'] = False
+
     logger.info("Scene states initialized.")
 
 
@@ -139,7 +143,6 @@ def generate_final_video():
     scene_states = st.session_state.get('scene_states', [])
     num_scenes = len(scene_states)
 
-    # Simplified checks
     if num_scenes == 0:
         st.warning("No scenes to generate final video.")
         logger.warning("Attempted final generation with no scenes.")
@@ -151,11 +154,11 @@ def generate_final_video():
     for scene_state in scene_states:
         if scene_state.get('is_confirmed', False) and scene_state.get('confirmed_video_url'):
             confirmed_video_data_list.append(
-                {'gs_uri': scene_state['confirmed_video_url']})  # Still pass gs_uri to backend
+                {'gs_uri': scene_state['confirmed_video_url']})
         else:
             all_scenes_confirmed = False
+            break
 
-    # Simplified checks
     if not all_scenes_confirmed:
         st.error("Please confirm all scenes before generating the final video.")
         logger.warning("Final generation attempted with unconfirmed scenes.")
@@ -419,3 +422,27 @@ def render_output_page(output_data: List[Dict[str, Any]]):
             disabled=not all_scenes_confirmed,
             help="This button is enabled when all scenes have been confirmed."
         )
+
+    # Add the Back button and confirmation logic at the bottom
+    st.markdown("---")  # Separator before back button
+    if st.button("← Go Back to Input Page"):
+        st.session_state['show_back_confirm'] = True  # Set flag to show confirmation
+
+    # Show confirmation message if flag is set
+    if st.session_state.get('show_back_confirm', False):
+        st.warning("Going back will discard your current review progress and selections.")
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            if st.button("Yes, Go Back", key="confirm_go_back"):
+                st.session_state['current_page'] = "Input"  # Assuming page name is "Input" or imported
+                # Clear relevant session state data when going back
+                st.session_state['ad_input_data'] = None
+                st.session_state['output_data'] = None
+                st.session_state['scene_states'] = None
+                st.session_state['initial_generation_pending'] = False
+                st.session_state['show_back_confirm'] = False  # Reset confirmation flag
+                st.rerun()
+        with col_no:
+            if st.button("No, Stay Here", key="cancel_go_back"):
+                st.session_state['show_back_confirm'] = False  # Hide confirmation
+                st.rerun()
