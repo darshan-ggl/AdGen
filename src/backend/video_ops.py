@@ -1,10 +1,58 @@
+# src/backend/video_ops.py
+
 import os
 import logging
 import tempfile
+from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse
 
 import ffmpeg
 from google.cloud import storage
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def upload_streamlit_file_to_gcs(uploaded_file, destination_blob_name: str) -> Optional[str]:
+    """
+    Uploads a file-like object from Streamlit's file_uploader to GCS.
+
+    Args:
+        uploaded_file: The file-like object from st.file_uploader.
+        destination_blob_name (str): The full path including bucket name (e.g., 'your-bucket/your-folder/your-file.png').
+
+    Returns:
+        Optional[str]: The GCS URI (gs://...) of the uploaded file if successful, None otherwise.
+    """
+    if uploaded_file is None:
+        logger.info("No file provided for GCS upload.")
+        return None
+
+    storage_client_instance = storage.Client()
+
+    try:
+        # Split the destination blob name into bucket and blob path
+        # Assuming destination_blob_name is like 'your-bucket/your-folder/your-file.png'
+        bucket_name, blob_name = destination_blob_name.split('/', 1)
+
+        bucket = storage_client_instance.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+
+        # Upload the file object directly
+        blob.upload_from_file(uploaded_file)
+
+        gcs_uri = f"gs://{bucket_name}/{blob_name}"
+        logger.info(f"Uploaded Streamlit file to GCS: {gcs_uri}")
+
+        # Note: Implementing deletion on app close is complex in Streamlit's serverless
+        # nature. This is a TODO for a production system, likely requiring a separate
+        # cleanup mechanism.
+
+        return gcs_uri
+
+    except Exception as e:
+        logger.error(f"Error uploading Streamlit file to GCS destination {destination_blob_name}: {e}")
+        return None
 
 
 def generate_video_clip(
@@ -13,7 +61,9 @@ def generate_video_clip(
         aspect_ratio: str,
         duration_seconds: str,
         person_generation: str,
-        image_gcs_uri: str = None
+        negative_prompt: str = None,
+        image_gcs_uri: str = None,
+        metadata: dict = None,
 ):
     # Simulate the time taken by a video generation API call
     import time
