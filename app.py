@@ -1,26 +1,20 @@
 # app.py
-
-import streamlit as st
-import logging
-import time  # Import time for simulating loading/polling
 import sys
+import logging
 from pathlib import Path
+import streamlit as st
+from src.backend import ad_generator
+from src.backend import video_ops
+from src.frontend import input_page, output_page
+
+# Set up logging for the main app
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Ensure the project root is in the path for imports
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
-
-# Import frontend pages
-from src.frontend import input_page, output_page
-
-# Import backend logic
-from src.backend import ad_generator
-from src.backend import video_ops  # Import video_ops for initial generation call
-
-# Set up logging for the main app
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Define page names
 INPUT_PAGE = "Input"
@@ -86,7 +80,11 @@ def _trigger_initial_video_generation():
     ad_input_data = st.session_state['ad_input_data']
     aspect_ratio = ad_input_data.get('aspect_ratio', '16:9')
     person_generation = ad_input_data.get('person_generation', 'dont_allow')
-    # uploaded_image = ad_input_data.get('uploaded_image', None) # Handle image if needed
+    uploaded_image = ad_input_data.get('uploaded_image', None)  # Handle image if needed
+    # Note: Handling image upload and getting its GCS URI would be needed here
+    # if the backend video generation function actually uses the image.
+    # For now, we'll just pass None or a dummy URI if needed by the mock/real function.
+    image_gcs_uri = None  # Replace with actual GCS URI if image is uploaded and used
 
     # Use a placeholder or spinner for the entire generation process
     try:
@@ -94,11 +92,11 @@ def _trigger_initial_video_generation():
             for i, scene_state in enumerate(st.session_state['scene_states']):
                 prompt = scene_state['prompt_text']
                 duration = scene_state['scene_duration']
+
                 # Define output location for initial clips
-                output_location = "gs://veo2-exp/dummy/veo2_output_clips"  # TODO: get output location from config file
-                # Call the backend video generation function
-                # This call is blocking in the current mock/example
-                new_gcs_paths = video_ops.generate_video_clip(
+                output_location = f"gs://veo2-exp/dummy/veo2_output_clips"
+
+                generated_clips_data = video_ops.generate_video_clip(
                     prompt=prompt,
                     output_location=output_location,
                     aspect_ratio=aspect_ratio,
@@ -106,9 +104,9 @@ def _trigger_initial_video_generation():
                     person_generation=person_generation,
                     # image_gcs_uri=... # Pass image GCS URI if applicable
                 )
-                # Update the scene state with the generated paths
-                st.session_state['scene_states'][i]['gcs_video_paths'] = new_gcs_paths
-                logger.info(f"Initial videos generated for Scene {i}: {new_gcs_paths}")
+                # Update the scene state with the generated data (list of dicts)
+                st.session_state['scene_states'][i]['gcs_video_paths'] = generated_clips_data
+                logger.info(f"Initial video data generated for Scene {i}: {generated_clips_data}")
 
         st.success("Initial video clips generated.")
         st.rerun()  # Rerun to display the output page with videos

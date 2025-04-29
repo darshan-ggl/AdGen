@@ -1,10 +1,10 @@
-import logging
 import os
+import logging
 import tempfile
 from urllib.parse import urlparse
 
-from google.cloud import storage
 import ffmpeg
+from google.cloud import storage
 
 
 def generate_video_clip(
@@ -15,31 +15,39 @@ def generate_video_clip(
         person_generation: str,
         image_gcs_uri: str = None
 ):
+    # Simulate the time taken by a video generation API call
     import time
     time.sleep(5)
-    # return [
-    #     "https://storage.mtls.cloud.google.com/mrdarshan-veo-exp/veo2_output_clips/15137911166599222061/sample_0.mp4?authuser=0",
-    #     "https://storage.mtls.cloud.google.com/mrdarshan-veo-exp/veo2_output_clips/15137911166599222061/sample_1.mp4?authuser=0",
-    #     "https://storage.mtls.cloud.google.com/mrdarshan-veo-exp/veo2_output_clips/15137911166599222061/sample_2.mp4?authuser=0"
-    # ]
-    file_urls = {}
-    client = storage.Client()
+
+    generated_clips_data = []
+    storage_client_instance = storage.Client()
+
     parsed_url = urlparse(output_location)
     bucket_name = parsed_url.netloc
     prefix = parsed_url.path.lstrip('/')
-    bucket = client.get_bucket(bucket_name)
-    blobs = bucket.list_blobs(prefix=prefix)
-    for blob in blobs:
-        if blob.name == prefix and not blob.name.endswith('/'):
-            pass
-        elif blob.name.startswith(prefix) and blob.name != prefix:
-            pass
-        else:
-            continue
-        # Use the public_url property which provides the standard HTTPS endpoint
-        # This URL requires authentication by the client accessing it unless the object is public
-        file_urls[f"gs://{bucket_name}/{blob.name}"] = blob.public_url
-    return file_urls
+
+    try:
+        bucket = storage_client_instance.get_bucket(bucket_name)
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        for blob in blobs:
+            if blob.name == prefix + "/":
+                continue
+
+            gs_uri = f"gs://{bucket_name}/{blob.name}"
+            http_url = f"https://storage.cloud.google.com/{bucket_name}/{blob.name}"
+
+            generated_clips_data.append({
+                'gs_uri': gs_uri,
+                'http_url': http_url
+            })
+
+    except Exception as e:
+        logging.error(f"Error listing blobs or generating signed URLs at {output_location}: {e}")
+        return []
+
+    logging.info(f"Simulated generated video data (gs_uri and signed http_url) by listing: {generated_clips_data}")
+    return generated_clips_data
 
 
 def download_from_gcs(gcs_urls, local_dir="temp_videos"):
@@ -128,14 +136,28 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
 
 
 if __name__ == "__main__":
-    gcs_urls = [
-        "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_0.mp4",
-        "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_1.mp4",
-        "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_2.mp4"
-    ]
+    # gcs_urls = [
+    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_0.mp4",
+    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_1.mp4",
+    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_2.mp4"
+    # ]
+    #
+    # output_file = "fast_merged_video.mp4"
+    #
+    # print(f"Attempting to merge videos from GCS: {gcs_urls} into {output_file}")
+    # merge_video_clips(gcs_urls, output_file)
+    # print("Merging process finished.")
 
-    output_file = "fast_merged_video.mp4"
+    # output_location = "gs://veo2-exp/dummy/veo2_output_clips"
+    # out = generate_video_clip(
+    #     prompt="prompt",
+    #     output_location=output_location,
+    #     aspect_ratio="aspect_ratio",
+    #     duration_seconds="duration",
+    #     person_generation="person_generation",
+    # )
+    # import json
+    #
+    # print(json.dumps(out, indent=3))
 
-    print(f"Attempting to merge videos from GCS: {gcs_urls} into {output_file}")
-    merge_video_clips(gcs_urls, output_file)
-    print("Merging process finished.")
+    pass
