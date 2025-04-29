@@ -2,24 +2,32 @@
 
 import streamlit as st
 import logging
-import time
+import time  # Import time for simulating loading
 from typing import List, Dict, Any, Optional
 
 # Import backend video operations
 from src.backend import video_ops
+
+# Assuming ad_generator is needed for initial data structure reference, though data comes via session state
+# from src.backend import ad_generator # Might not be strictly needed here
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Assuming page names are defined in app.py
+# from app import INPUT_PAGE, OUTPUT_PAGE # Example if you want to import constants
+
+
 def initialize_scene_state(output_data: List[Dict[str, Any]]):
     """
-    Initializes session state for each scene based on output data.
-    Called from render_output_page when scene_states needs initialization.
+    Initializes session state for each scene based on output data (prompts/durations).
+    Called from app.py when initial prompts are received.
 
     Args:
-        output_data (List[Dict[str, Any]]): The list of scene data from the backend.
+        output_data (List[Dict[str, Any]]): The list of scene data from the backend,
+                                             containing 'prompt' and 'scene_duration'.
     """
     # Check if output_data is valid before proceeding
     if output_data is None or not isinstance(output_data, list):
@@ -34,13 +42,13 @@ def initialize_scene_state(output_data: List[Dict[str, Any]]):
     st.session_state['scene_states'] = []
     for i, scene in enumerate(output_data):
         st.session_state['scene_states'].append({
-            'prompt_text': scene.get('prompt', ''),
-            'original_prompt': scene.get('prompt', ''),  # Use .get for safety
+            'prompt_text': scene.get('prompt', ''),  # Use .get for safety, map 'prompt' to 'prompt_text' for editing
+            'original_prompt': scene.get('prompt', ''),  # Store original prompt
             'is_edited': False,
             'video_index': 0,  # Start with the first video
             'confirmed_video_url': None,
             'is_confirmed': False,
-            'gcs_video_paths': scene.get('gcs_video_paths', []),  # Get paths, default to empty list
+            'gcs_video_paths': [],  # Initially empty, videos are generated later
             'scene_duration': scene.get('scene_duration', 5)  # Get duration, default to 5s
         })
     # Initialize regen_count if not exists, for dummy video URLs in mock regen
@@ -85,9 +93,11 @@ def confirm_video_selection(scene_index: int):
         scene_index (int): The index of the scene being confirmed.
     """
     scene_state = st.session_state['scene_states'][scene_index]
-    selected_index = scene_state['video_index']
-    if 0 <= selected_index < len(scene_state['gcs_video_paths']):
-        confirmed_url = scene_state['gcs_video_paths'][selected_index]
+    selected_index = scene_state.get('video_index', 0)  # Use .get for safety
+    gcs_paths = scene_state.get('gcs_video_paths', [])  # Use .get for safety
+
+    if 0 <= selected_index < len(gcs_paths):
+        confirmed_url = gcs_paths[selected_index]
         scene_state['confirmed_video_url'] = confirmed_url
         scene_state['is_confirmed'] = True
         logger.info(f"Scene {scene_index} video confirmed: {confirmed_url}")
@@ -105,9 +115,9 @@ def regenerate_scene_video(scene_index: int):
         scene_index (int): The index of the scene to regenerate.
     """
     scene_state = st.session_state['scene_states'][scene_index]
-    if scene_state['is_edited']:
-        edited_prompt = scene_state['prompt_text']
-        duration = scene_state['scene_duration']
+    if scene_state.get('is_edited', False):  # Use .get for safety
+        edited_prompt = scene_state.get('prompt_text', '')  # Use .get for safety
+        duration = scene_state.get('scene_duration', 5)  # Use .get for safety
         # Retrieve other necessary inputs from session state or config
         # Assuming aspect_ratio, person_generation are stored in session_state['ad_input_data']
         ad_input_data = st.session_state.get('ad_input_data', {})
@@ -172,12 +182,12 @@ def generate_final_video():
         return
 
     for i, scene_state in enumerate(st.session_state['scene_states']):
-        if scene_state['is_confirmed'] and scene_state['confirmed_video_url']:
+        if scene_state.get('is_confirmed', False) and scene_state.get('confirmed_video_url'):  # Use .get for safety
             final_scene_data.append({
                 "scene_index": i,
-                "prompt": scene_state['prompt_text'],
-                "confirmed_video_url": scene_state['confirmed_video_url'],
-                "scene_duration": scene_state['scene_duration']
+                "prompt": scene_state.get('prompt_text', ''),  # Use .get for safety
+                "confirmed_video_url": scene_state.get('confirmed_video_url', ''),  # Use .get for safety
+                "scene_duration": scene_state.get('scene_duration', 5)  # Use .get for safety
             })
         else:
             all_scenes_confirmed = False
@@ -208,7 +218,8 @@ def generate_final_video():
         # This should be a unique location for each final ad
         # You might use a timestamp or a unique ID
         timestamp = int(time.time())
-        output_location = f"gs://your-ad-generator-bucket/final_ads/ad_{timestamp}"
+        # output_location = f"gs://veo2-exp/dummy/final_ads/ad_{timestamp}"
+        output_location = "/Users/mrdarshan/PycharmProjects/AdGen/data/videos/final_video"
 
         with st.spinner("Merging videos and generating final ad..."):
             final_video_uri = video_ops.merge_video_clips(
@@ -237,10 +248,14 @@ def generate_final_video():
 def _render_scene_header(scene_index: int, scene_state: Dict[str, Any]):
     """Renders the header for a single scene with workflow indicator."""
     indicator_icon = "⏳"  # Pending
-    if scene_state.get('is_edited', False):
+    if scene_state.get('is_edited', False):  # Use .get for safety
         indicator_icon = "✏️"  # Edited
-    if scene_state.get('is_confirmed', False):
+    if scene_state.get('is_confirmed', False):  # Use .get for safety
         indicator_icon = "✅"  # Confirmed
+    # If videos are loading, indicate that
+    if not scene_state.get('gcs_video_paths', []):
+        indicator_icon = "🔄"  # Loading indicator
+
     st.subheader(f"Scene {scene_index + 1} {indicator_icon}")  # Add icon to header
 
 
@@ -337,7 +352,8 @@ def render_output_page(output_data: List[Dict[str, Any]]):
     Renders the output page displaying generated scenes and controls with horizontal layout.
 
     Args:
-        output_data (List[Dict[str, Any]]): The list of scene data from the backend.
+        output_data (List[Dict[str, Any]]): The list of scene data from the backend,
+                                             containing 'prompt' and 'scene_duration'.
     """
     logger.info("Rendering output page with horizontal layout...")
 
@@ -379,9 +395,11 @@ def render_output_page(output_data: List[Dict[str, Any]]):
 
     # Initialize or load scene states from session state based on the passed output_data
     # This ensures scene_states is in sync with the output_data received from the backend
+    # It also handles the case where output_data might be None initially due to errors
     if ('scene_states' not in st.session_state or
             st.session_state['scene_states'] is None or
-            len(st.session_state['scene_states']) != len(output_data)):  # Re-initialize if data length changes
+            (output_data is not None and len(st.session_state['scene_states']) != len(
+                output_data))):  # Re-initialize if data length changes and output_data is not None
         initialize_scene_state(output_data)
 
     # Ensure scene_states exists in session state after potential initialization
@@ -397,13 +415,14 @@ def render_output_page(output_data: List[Dict[str, Any]]):
     # This list is built dynamically during rendering to pass to the final generate function
     scene_data_for_final_generation = []
 
-    scenes_per_row = 3  # Define how many scenes per row
+    scenes_per_row = 2  # Define how many scenes per row
 
     # Iterate through scenes and group them into rows
     num_scenes = len(st.session_state['scene_states'])
 
     # Calculate confirmed scenes count for progress summary
-    num_confirmed_scenes = sum(1 for scene_state in st.session_state['scene_states'] if scene_state['is_confirmed'])
+    num_confirmed_scenes = sum(1 for scene_state in st.session_state['scene_states'] if
+                               scene_state.get('is_confirmed', False))  # Use .get for safety
 
     for i in range(0, num_scenes, scenes_per_row):
         # Create columns for the current row
@@ -421,25 +440,45 @@ def render_output_page(output_data: List[Dict[str, Any]]):
 
                     # Render scene components using modular functions
                     _render_scene_header(scene_index, scene_state)
-                    _render_video_player_and_selectors(scene_index, scene_state)
 
                     # Check if videos exist before rendering prompt and buttons
-                    if len(scene_state.get('gcs_video_paths', [])) > 0:  # Use .get for safety
+                    gcs_paths = scene_state.get('gcs_video_paths', [])  # Use .get for safety
+                    if len(gcs_paths) > 0:
+                        _render_video_player_and_selectors(scene_index, scene_state)
                         _render_prompt_area(scene_index, scene_state)
                         _render_scene_buttons(scene_index, scene_state)
 
                         # Store confirmed URL for final generation if confirmed
-                        if scene_state['is_confirmed']:
+                        if scene_state.get('is_confirmed', False):  # Use .get for safety
                             scene_data_for_final_generation.append({
                                 "scene_index": scene_index,
-                                "prompt": scene_state['prompt_text'],
-                                "confirmed_video_url": scene_state['confirmed_video_url'],
-                                "scene_duration": scene_state['scene_duration']
+                                "prompt": scene_state.get('prompt_text', ''),  # Use .get for safety
+                                "confirmed_video_url": scene_state.get('confirmed_video_url', ''),
+                                # Use .get for safety
+                                "scene_duration": scene_state.get('scene_duration', 5)  # Use .get for safety
                             })
                     else:
-                        st.warning("No videos generated for this scene.")
-                        # If no videos, this scene cannot be confirmed for final generation
-                        # This scene will not be included in final_scene_data, affecting all_scenes_confirmed check
+                        # Show loading state if videos are not yet generated
+                        st.video(
+                            "https://storage.googleapis.com/gtv-films-clients/veo/dummy/loading.mp4")  # Placeholder loading video
+                        st.info(f"Generating videos for Scene {scene_index + 1}...")
+                        # Display the prompt even if videos are loading
+                        st.text_area(
+                            "Prompt:",
+                            value=scene_state.get('prompt_text', ''),  # Use .get for safety
+                            height=150,
+                            key=f'prompt_area_{scene_index}',  # Still need a key even if disabled
+                            disabled=True,  # Disable editing while loading
+                            help="Videos are currently being generated for this scene."
+                        )
+                        # Disable buttons while loading
+                        button_col1, button_col2 = st.columns(2)
+                        with button_col1:
+                            st.button("Re-generate", key=f'regenerate_button_{scene_index}', disabled=True,
+                                      help="Wait for initial generation to complete.")
+                        with button_col2:
+                            st.button("Confirm", key=f'confirm_button_{scene_index}', disabled=True,
+                                      help="Wait for initial generation to complete.")
 
         st.markdown("---")  # Add a separator after each row for visual separation
 

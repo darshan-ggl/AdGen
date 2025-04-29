@@ -1,8 +1,22 @@
-import logging
-import traceback
-import streamlit as st
+# app.py
 
+import streamlit as st
+import logging
+import time  # Import time for simulating loading/polling
+import sys
+from pathlib import Path
+
+# Ensure the project root is in the path for imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+# Import frontend pages
 from src.frontend import input_page, output_page
+
+# Import backend logic
+from src.backend import ad_generator
+from src.backend import video_ops  # Import video_ops for initial generation call
 
 # Set up logging for the main app
 logging.basicConfig(level=logging.INFO)
@@ -13,85 +27,149 @@ INPUT_PAGE = "Input"
 OUTPUT_PAGE = "Output"
 
 
+def _initialize_session_state():
+    """Initializes key session state variables if they don't exist."""
+    if 'current_page' not in st.session_state:
+        st.session_state['current_page'] = INPUT_PAGE
+        st.session_state['ad_input_data'] = None
+        st.session_state['output_data'] = None  # Stores the initial prompts/durations from ad_generator
+        st.session_state['scene_states'] = None  # Stores the mutable state for each scene in the UI
+        st.session_state['initial_generation_pending'] = False  # Flag to trigger initial video generation
+        logger.info("Initial session state initialized.")
+
+
+def _handle_input_submission(input_data: dict):
+    """Handles actions after the input page form is submitted."""
+    if input_data:
+        st.session_state['ad_input_data'] = input_data
+        logger.info("Input data collected. Transitioning to output page.")
+        st.session_state['current_page'] = OUTPUT_PAGE
+        st.session_state['output_data'] = None  # Clear previous output data
+        st.session_state['scene_states'] = None  # Clear previous scene states
+        st.session_state['initial_generation_pending'] = False  # Reset flag
+        st.rerun()  # Rerun to switch page
+
+
+def _generate_initial_prompts():
+    """Calls backend to generate initial scene prompts and updates state."""
+    logger.info("Generating initial output data (scene prompts) from backend...")
+    try:
+        ad_idea = st.session_state['ad_input_data'].get('product_ad_idea', '')
+        st.session_state['output_data'] = ad_generator.get_scene_prompts(ad_idea=ad_idea)
+        logger.info("Initial output data (prompts) generated and stored.")
+        st.session_state['initial_generation_pending'] = True  # Set flag to trigger video generation next
+        st.rerun()  # Rerun to proceed to initial video generation step
+    except Exception as e:
+        logger.error(f"Error generating initial output data: {e}")
+        st.error(f"An error occurred during ad concept generation: {e}")
+        # Reset state and go back to input on error
+        st.session_state['current_page'] = INPUT_PAGE
+        st.session_state['ad_input_data'] = None
+        st.session_state['output_data'] = None
+        st.session_state['scene_states'] = None
+        st.session_state['initial_generation_pending'] = False
+        st.rerun()
+
+
+def _trigger_initial_video_generation():
+    """Triggers initial video generation for all scenes and updates state."""
+    logger.info("Initial video generation pending. Triggering generation for all scenes.")
+    st.session_state['initial_generation_pending'] = False  # Clear the flag
+
+    # Initialize scene_states based on the output_data (which now has prompts/durations)
+    # gcs_video_paths will be empty initially in scene_states
+    output_page.initialize_scene_state(st.session_state['output_data'])
+
+    # Trigger video generation for each scene
+    # NOTE: This loop contains blocking calls in the current video_ops mock.
+    # In a production app, you must handle this asynchronously.
+    ad_input_data = st.session_state['ad_input_data']
+    aspect_ratio = ad_input_data.get('aspect_ratio', '16:9')
+    person_generation = ad_input_data.get('person_generation', 'dont_allow')
+    # uploaded_image = ad_input_data.get('uploaded_image', None) # Handle image if needed
+
+    # Use a placeholder or spinner for the entire generation process
+    try:
+        with st.spinner("Generating initial video clips for all scenes... This may take a few minutes."):
+            for i, scene_state in enumerate(st.session_state['scene_states']):
+                prompt = scene_state['prompt_text']
+                duration = scene_state['scene_duration']
+                # Define output location for initial clips
+                output_location = "gs://veo2-exp/dummy/veo2_output_clips"  # TODO: get output location from config file
+                # Call the backend video generation function
+                # This call is blocking in the current mock/example
+                new_gcs_paths = video_ops.generate_video_clip(
+                    prompt=prompt,
+                    output_location=output_location,
+                    aspect_ratio=aspect_ratio,
+                    duration_seconds=duration,
+                    person_generation=person_generation,
+                    # image_gcs_uri=... # Pass image GCS URI if applicable
+                )
+                # Update the scene state with the generated paths
+                st.session_state['scene_states'][i]['gcs_video_paths'] = new_gcs_paths
+                logger.info(f"Initial videos generated for Scene {i}: {new_gcs_paths}")
+
+        st.success("Initial video clips generated.")
+        st.rerun()  # Rerun to display the output page with videos
+
+    except Exception as e:
+        logger.error(f"Error during initial video generation: {e}")
+        st.error(f"An error occurred during initial video generation: {e}")
+        # Decide how to handle error - maybe clear state and go back to input?
+        st.session_state['current_page'] = INPUT_PAGE
+        st.session_state['ad_input_data'] = None
+        st.session_state['output_data'] = None
+        st.session_state['scene_states'] = None
+        st.session_state['initial_generation_pending'] = False
+        st.rerun()
+
+
+def _render_output_page_with_data():
+    """Renders the output page using data from session state."""
+    logger.info("Rendering output page with data and videos.")
+    # Pass the output_data (contains initial prompts/durations) to render_output_page.
+    # The render function will use scene_states for the current UI state (including video paths).
+    output_page.render_output_page(st.session_state['output_data'])
+
+
 def main():
     """
     Main function to run the Streamlit application.
-    Handles page navigation based on session state.
+    Orchestrates page navigation and backend workflow steps.
     """
+    _initialize_session_state()
     st.set_page_config(layout="wide", page_title="AI Ad Generator")
-    logger.info("Starting Streamlit app.")
 
-    # Initialize session state for page navigation and data storage
-    if 'current_page' not in st.session_state:
-        st.session_state['current_page'] = INPUT_PAGE
-        logger.info(f"Initial page set to: {st.session_state['current_page']}")
+    # --- Page Rendering and Logic ---
 
-    # Render the current page
     if st.session_state['current_page'] == INPUT_PAGE:
-        # The input page returns data if the form is submitted
         input_data = input_page.render_input_page()
-        if input_data:
-            # Store input data in session state
-            st.session_state['ad_input_data'] = input_data
-            logger.info("Input data collected. Attempting to generate scene prompts.")
-            # Transition to a loading state or directly to output page logic
-            # In a real app, you might show a spinner here while calling the backend
-            st.session_state[
-                'current_page'] = OUTPUT_PAGE  # Assume successful backend call will happen before rendering output
-            st.session_state['output_data'] = None  # Clear previous output data
-            st.session_state['scene_states'] = None  # Clear previous scene states
-            st.rerun()  # Rerun the app to switch page
+        _handle_input_submission(input_data)
 
     elif st.session_state['current_page'] == OUTPUT_PAGE:
-        # The output page requires generated data
-        # This is where we would typically call the backend to get the initial output_data
-        # For demonstration, we'll call the backend logic here if data isn't already present
-
+        # Ensure input data is available to proceed on the output page
         if 'ad_input_data' not in st.session_state or st.session_state['ad_input_data'] is None:
             st.warning("No input data found. Returning to input page.")
             st.session_state['current_page'] = INPUT_PAGE
             st.rerun()
             return  # Stop execution for this run
 
-        # Check if output data is already generated (e.g., after initial prompt generation)
+        # Step 1: Generate Initial Scene Prompts (if not already done)
         if 'output_data' not in st.session_state or st.session_state['output_data'] is None:
-            logger.info("Generating initial output data from backend...")
-            try:
-                # Call the backend function to get initial scene prompts
-                from src.backend.ad_generator import get_scene_prompts
+            _generate_initial_prompts()
+            return  # Stop execution, a rerun is triggered inside _generate_initial_prompts
 
-                ad_idea = st.session_state['ad_input_data'].get('product_ad_idea', '')
+        # Step 2: Trigger Initial Video Generation (if pending)
+        if st.session_state.get('initial_generation_pending', False):
+            _trigger_initial_video_generation()
+            return  # Stop execution, a rerun is triggered inside _trigger_initial_video_generation
 
-                # You might pass other relevant inputs like product name, image etc.
-                st.session_state['output_data'] = get_scene_prompts(ad_idea=ad_idea)
-                logger.info("Initial output data generated and stored in session state.")
-
-                # # Re-initialize scene states based on the new output data
-                # output_page.initialize_scene_state(st.session_state['output_data'])
-                st.rerun()  # Rerun to display the output page with data
-                return  # Stop execution for this run
-            except Exception as e:
-                logger.error(f"Error generating initial output data: {e}")
-                print(traceback.format_exc())
-                st.error(f"An error occurred during ad concept generation: {e}")
-                st.session_state['current_page'] = INPUT_PAGE  # Go back to input on error
-                st.rerun()
-                return  # Stop execution for this run
-
-        # If output data exists, render the output page
-        logger.info("Rendering output page with existing data.")
-        output_page.render_output_page(st.session_state['output_data'])
-
-    # Add a button to navigate back to the input page (optional, for testing)
-    # This could also be a sidebar link in a multi-page app structure
-    # if st.session_state['current_page'] == OUTPUT_PAGE:
-    #     if st.button("← Go Back to Input"):
-    #         st.session_state['current_page'] = INPUT_PAGE
-    #         # Clear relevant session state data when going back
-    #         st.session_state['ad_input_data'] = None
-    #         st.session_state['output_data'] = None
-    #         st.session_state['scene_states'] = None
-    #         st.rerun()
+        # Step 3: Render the Output Page (once output_data and initial videos are ready)
+        # If we reach here, output_data exists and initial generation is not pending.
+        # This means either initial generation finished, or the user is interacting
+        # with the output page (editing, regenerating, confirming).
+        _render_output_page_with_data()
 
 
 if __name__ == "__main__":
