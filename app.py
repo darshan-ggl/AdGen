@@ -93,10 +93,13 @@ def _trigger_initial_video_generation():
         with st.spinner("Generating initial video clips for all scenes... This may take a few minutes."):
             for i, scene_state in enumerate(st.session_state['scene_states']):
                 prompt = scene_state['prompt_text']
-                duration = scene_state['scene_duration']
+                duration = int(scene_state['scene_duration'])
+                if duration < 5:
+                    duration = 5
 
                 # Define output location for initial clips
                 output_location = f"gs://veo2-exp/dummy/veo2_output_clips"
+                output_location = "gs://mrdarshan-veo-exp/veo2_output_clips/AdGen"
 
                 generated_clips_data = video_ops.generate_video_clip(
                     prompt=prompt,
