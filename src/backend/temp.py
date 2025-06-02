@@ -1,0 +1,128 @@
+attr_desc = {
+    "DealCurrencyCode": "Currency Code",
+    "FacilityRateBasisCode": "Driver of the pricing level (i.e. external ratings, leveraged ratio, utilization, etc.)",
+    "FacilityRateBasisDescription": "Classification of the different types of FacilityPricingRateBasisType, which will appear in the UI.",
+    "FacilityRateBasisLongDescription": "Optional - Detailed description of the FacilityRateBasis",
+    "EffectiveStartDate": "Date the identifier first become effective. aka start date, commence date.",
+    "FacilityRoundingDecimalPrecisionCode": "Rounding applicable for decimal values",
+    "FacilityRoundingDecimalPrecisionDescription": "Classification of the different types of FacilityRoundingDecimalPrecisionType, which will appear in the UI.",
+    "FacilityRoundingDecimalPrecisionLongDescription": "Optional - Detailed description of the FacilityRoundingDecimalPrecision",
+    "CreditAgreementDate": "Date of the original Credit Agreement",
+    "DealCloseDate": "Date in which the original Credit Agreement closed / Citi entered Credit Agreement",
+    "DealMaximumMatchFundedLoanNumber": "Maximum number of matchfunded (ex. LIBOR) loan contracts / interest periods allowed under the credit agreement",
+    "DealPurposeID": "ID represents overarching credit agreement use of proceeds (e.g. Acquisition) at origination",
+    "DealPrimaryCurrencyCode": "Currency Code",
+    "FacilityPrepaymentCode": "Code denotes whether prepayment is mandatory or optional",
+    "FacilityPrepaymentDescription": "Classification of the different types of FacilityPrepaymentType, which will appear in the UI.",
+    "FacilityPrepaymentLongDescription": "Optional - Detailed description of the FacilityPrepayment",
+    "EffectiveEndDate": "The date on which a charge or variation of a charge ceases to have effect on the identifier.",
+    "OngoingFeeDetailToRangeComputationBasisText": "Rate basis value utilized for the formula (e.g. ratio, leverage, utilization, etc.)",
+    "OngoingFeeDetailSpreadRate": "Actual rate / margin / spread value corresponding to the pricing level denoted",
+    "OngoingFeeDetailEffectiveDate": "Date on which the specific pricing level becomes effective",
+    "PricingCurrencyCode": "Currency Code",
+    "FacilityPricingGridReferenceCode": "Code denotes the basis for applying pricing",
+    "LenderCommitmentAmount": "Corresponding commitment / share of the facility / credit line for each respective lender per the commitment schedule of the credit agreement (primary); any subsequent changes / assignments should feed back from Loan IQ",
+    "LenderProrataPercentage": "Percentage of the respective lender''s facility commitment amount divided by the total global facility commitment amount",
+    "FacilityAvailableCurrencyCode": "Currency Code",
+    "FacilityPurposeTypeID": "Primary purpose for the facility in terms of how the credit line will be utilized for the client (i.e. general corporate purposes, refinance, etc.)",
+    "FacilityPurposeTypeLongDescription": "Long description for FacilityPurposeType",
+    "FacilityPurposeDescription": "Classification of the different types of FacilityPurposeType, which will appear in the UI.",
+    "SublimitCurrencyCode": "Currency Code",
+    "FacilityRoundingID": "Number of decimal places utilized for alternative rate",
+    "FacilityRoundingDescription": "Classification of the different types of FacilityRounding type, which will appear in the UI.",
+    "FacilityRoundingLongDescription": "Optional - Detailed description of the FacilityRounding",
+    "OngoingFeeEffectiveDate": "Effective / start / addition date in which this pricing option is available under the facility",
+    "OngoingFeeMaturityDate": "Maturity / end / removal date in which this pricing option is no longer available under the facility",
+    "OngoingFeeFloorRate": "Rate floor / minimum given for a specific rate / pricing option (e.g. LIBOR 1% floor, 0%, etc.)",
+    "OngoingFeeCeilingRate": "Rate ceiling / maximum given for a specific rate / pricing option",
+    "FeeTypeCode": "Code classifies fee- counting Accounting Units according to the type of fee that applies.",
+    "NonBusinessDayRuleCode": "Defines requirement of how to treat fee payment if due date falls on the day of the month or quarter that is a weekend or holiday (e.g. preceding business day)",
+    "FacilityFeeRateBasisCode": "Driver of the pricing level (i.e. external ratings, leveraged ratio, utilization, etc.)",
+    "FacilityFeeBasisCode": "Pricing margins in basis points (BPS) or percentage (%)",
+    "FacilityFeeBasisPointCode": "Pricing margins in basis points (BPS) or percentage (%)",
+    "PricingDetailFromRangeComputationBasisText": "Rate basis value utilized for the formula (e.g. ratio, leverage, utilization, etc.)",
+    "PricingDetailToRangeComputationBasisText": "Rate basis value utilized for the formula (e.g. ratio, leverage, utilization, etc.)",
+    "PricingDetailSpreadRate": "Actual rate / margin / spread value corresponding to the pricing level denoted",
+    "PricingDetailFloorRate": "Rate Floor / minimum given for a specific rate / pricing option (e.g. LIBOR 1% floor, 0%, etc.) corresponding with pricing level",
+    "PricingDetailEffectiveDate": "Date on which the specific pricing level becomes effective",
+    "PricingOptionFromRangeParameterSignCode": "Code represents formula signs to allow for the mathematical translation of the credit agreement pricing / margin grids.",
+    "PricingOptionToRangeParameterSignCode": "Code represents formula signs to allow for the mathematical translation of the credit agreement pricing / margin grids.",
+    "FacilityGlobalAmount": "Aggregate / total amount of the facility; sum of all lender shares if syndicated; equal to Citi commitment if bilateral loan",
+    "FacilityEffectiveDate": "Date in which the facility became effective and all CPs are met facility is available for use / draw",
+    "FacilityMaturityDate": "Date in which the facility matures / terminates after which no new principal can be released and all principal, interest, and fees due from the borrower(s) must be paid in full",
+    "FacilityExpirationDate": "Date in which the facility may no longer have new loan draws (e.g. term loans that are single draw should expire on the same day as the original draw)",
+    "ExtendedMaturityDate": "This field captures the last date that funds must be repaid, inclusive of extension options",
+    "PricingDefaultInterestRate": "Interest rate to be applied in case of default",
+    "OngoingFeeDefaultInterestRate": "Interest rate to be applied in case of default",
+    "PrepaymentPenaltyAmount": "Penalty amount applicable in case of pre-payment",
+    "FacilityGlobalCurrentCommitmentAmount": "Aggregate / total amount of the facility current amount (both LCs and loans); sum of all lender shares if syndicated; equal to citi commitment if bilateral loan (to feed from Loan IQ)",
+    "FacilityTypeID": "Type of facility being reviewed (e.g. revolving credit, term loan A, term loan B, etc.)",
+    "AmortizingOrAccretingCode": "- Accreting - used to describe facility where notional amount of credit exposure increases over life of facility. Applicable only to committed facilities.",
+    "FacilityExtendedMaturityOptionCode": "This field captures the party that has the option to extend the maturity date (borrower or lender), as per Credit Agreement",
+    "FacilityCoBorrowerStructureCode": "Capture co-borrower structure against each facility",
+    "FacilityPrimaryCurrencyCode": "Currency Code",
+    "FacilityPurposeCode": "Facility Purpose Code",
+    "FacilityTypeCode": "Facility Type Code",
+    "PrimaryAgentIndicator": "To identify if an administrative agent or a documentation agent is the primary agent in a facility. This is an optional field.",
+    "PricingEffectiveDate": "Effective / start / addition date in which this pricing option is available under the facility",
+    "PricingMaximumDrawAmount": "Maximum amount that a single draw / LC request can be made on using the specific pricing type",
+    "PricingMinimumDrawAmount": "Minimum amount that a single draw / LC request can be made on using the specific pricing type",
+    "PricingMinimumMultiplesNumber": "Minimum multiple in which a single draw / LC request can be made in for the specific pricing type (e.g. 1mm)",
+    "InterestDueUponPrincipalIndicator": "Whether or not interest is due upon receipt of principal (e.g. LIBOR)",
+    "InterestDueUponRepricingIndicator": "Whether or not interest is due upon repricing (e.g. LIBOR)",
+    "PricingIntentNoticeAdvanceDayCount": "Number of business days the intention to notice to draw or reprice / LC request must be provided per the Credit Agreement",
+    "PricingIntentNoticeTimeText": "Time by which the intention to notice to draw or reprice / LC request must be provided per the Credit Agreement on the request day",
+    "PricingRateSetAdvanceDayCount": "Number of business days the rate needs to be set for the draw or reprice per the Credit Agreement",
+    "PricingRateSetTimeText": "Time by which the rate needs to be set for the draw or reprice per the Credit Agreement on the rate set day",
+    "PricingFloorRate": "Rate floor / minimum given for a specific rate / pricing option (e.g. LIBOR 1% floor, 0%, etc.)",
+    "PricingCeilingRate": "Rate ceiling / maximum given for a specific rate / pricing option",
+    "PricingLookbackNumber": "To be filled if Interest Type = Simple/Compounded",
+    "CreditAdjustmentSpreadIndicator": "To capture whether CAS is applicable for the RFR pricing option or not.",
+    "PricingFloorIndicator": "Pricing Floor Indicator",
+    "FacilityPricingTypeID": "Pricing option / rate or fee available under the facility (LC, Swingline, LIBOR Loan, Prime Loan, etc.)",
+    "FacilityPricingRateBasisCode": "Driver of the pricing level (i.e. external ratings, leveraged ratio, utilization, etc.)",
+    "FacilityPricingBasisCode": "Pricing margins in basis points (BPS) or percentage (%)",
+    "FacilityPricingBasisPointCode": "Pricing margins in basis points (BPS) or percentage (%)",
+    "FacilityInterestTypeCode": "Term v Simple v Compounded",
+    "FacilityPricingPaymentTypeCode": "Billing / payment convention for fee; payments made in arrears means you pay for the period that has passed vs. in advance means you pay for the period ahead",
+    "PricingRateSetTimeCode": "Code represents time by which the intention notice to draw or reprice / LC request must be provided per the Credit Agreement on the request day",
+    "PricingIntentNoticeTimeCode": "Code represents time by which the intention notice to draw or reprice / LC request must be provided per the Credit Agreement on the request day",
+    "PricingRateSetTimezoneCode": "Code represents the time by which the intention notice to draw or reprice / LC request must be provided per the Credit Agreement on the request day",
+    "PricingIntentNoticeTimezoneCode": "Code represents the time by which the intention notice to draw or reprice / LC request must be provided per the Credit Agreement on the request day",
+    "FloorApplicationCode": "To determine how floor rate will be applied",
+    "SublimitCommitmentAmount": "Corresponding commitment the Issuing / Fronting Bank is willing to issue / front / fund per the credit agreement",
+    "ProRataPercentage": "Percentage of the respective Issuing / Fronting Bank''s issuing / Fronting commitment amount divided by the total global facility commitment amount available for the specific instrument available",
+    "ApplicableHolidayCalendarCode": "Country or state holiday calendars codes for applicable currencies, funding jurisdictions, etc. as stipulated in credit agreement",
+    "SublimitAmount": "Amount corresponding to sublimit type",
+    "AmortizationPaymentDate": "The expected date in which the amortization payment - reduction of credit facility - is scheduled or expected",
+    "AmortizationReductionGlobalAmount": "Global amount of amortization payment - reduction of credit facility - corresponding to the date",
+    "FacilityPrepaymentApplicationCode": "Details how prepayment is applied for the facility - bullet, order of maturity, or client enforced",
+    "BorrowerSublimitAmount": "Amount corresponding to sublimit type",
+    "BorrowerSublimitTypeCode": "Specific sublimit or maximum amount (if applicable) the Borrower has access to underlying instruments within the credit line / facility (i.e. Letters of Credit, Swingline, Loans, FX, etc.)",
+    "PricingLengthOfInterestPeriodText": "Duration of interest period for which the spread is applicable",
+    "PricingCreditAdjustmentSpreadPercentage": "Credit adjustment spread value in % per annum",
+    "CommitmentAmount": "Citi's commitment / hold amount at close (either for sale or for investment / maturity) per the credit agreement",
+    "GlobalSublimitAmount": "Specific sublimit or maximum amount (if applicable) the Borrower has access to under the credit line / facility holistically (i.e. at the facility level)",
+    "FeeCurrencyCode": "Currency Code"
+}
+
+attribute_description = """ 
+CommitmentAmount: Citi's commitment / hold amount at close (either for sale or for investment / maturity) per the credit agreement
+ProRataPercentage: Percentage of the respective Issuing / Fronting Bank''s issuing / Fronting commitment amount divided by the total global facility commitment amount available for the specific instrument available
+
+FeeTypeCode: Code classifies fee- counting Accounting Units according to the type of fee that applies.
+PricingEffectiveDate: Effective / start / addition date in which this pricing option is available under the facility
+
+Are theses mapped to maximumDrawAmount, minimumDrawAmount, minimumMultiples for FacilityInterestPricingOption?
+PricingMaximumDrawAmount: Maximum amount that a single draw / LC request can be made on using the specific pricing type
+PricingMinimumDrawAmount: Minimum amount that a single draw / LC request can be made on using the specific pricing type
+PricingMinimumMultiplesNumber: Minimum multiple in which a single draw / LC request can be made in for the specific pricing type (e.g. 1mm)
+
+FacilityPrimaryCurrencyCode: Currency Code
+FacilityTypeID: Type of facility being reviewed (e.g. revolving credit, term loan A, term loan B, etc.)
+FacilityGlobalAmount: Aggregate / total amount of the facility; sum of all lender shares if syndicated; equal to Citi commitment if bilateral loan
+FacilityEffectiveDate: Date in which the facility became effective and all CPs are met facility is available for use / draw
+FacilityMaturityDate: Date in which the facility matures / terminates after which no new principal can be released and all principal, interest, and fees due from the borrower(s) must be paid in full
+FacilityExpirationDate: Date in which the facility may no longer have new loan draws (e.g. term loans that are single draw should expire on the same day as the original draw)
+FacilityGlobalCurrentCommitmentAmount: Aggregate / total amount of the facility current amount (both LCs and loans); sum of all lender shares if syndicated; equal to citi commitment if bilateral loan (to feed from Loan IQ)
+"""
