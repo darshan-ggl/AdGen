@@ -126,3 +126,759 @@ FacilityMaturityDate: Date in which the facility matures / terminates after whic
 FacilityExpirationDate: Date in which the facility may no longer have new loan draws (e.g. term loans that are single draw should expire on the same day as the original draw)
 FacilityGlobalCurrentCommitmentAmount: Aggregate / total amount of the facility current amount (both LCs and loans); sum of all lender shares if syndicated; equal to citi commitment if bilateral loan (to feed from Loan IQ)
 """
+
+# !/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+# %pip install --upgrade --quiet google-genai
+
+
+# In[27]:
+
+
+import os
+import json
+from google import genai
+from google.genai.types import GenerateContentConfig, Part
+
+PROJECT_ID = "jarvis-365810"
+LOCATION = os.environ.get("GOOGLE_CLOUD_REGION", "us-central1")
+
+PDF_MIME_TYPE = "application/pdf"
+JSON_MIME_TYPE = "application/json"
+
+# MODEL_ID = "gemini-1.5-pro"
+MODEL_ID = "gemini-2.0-flash"
+# MODEL_ID = "gemini-2.5-pro-preview-05-06"
+client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+
+# In[11]:
+
+
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
+from datetime import datetime
+
+
+class EntityAttributes(BaseModel):
+    entityType: str
+    externalId: int
+    LIQRefID: Optional[str] = None
+
+
+class LoanPurpose(BaseModel):
+    entityAttributes: EntityAttributes
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    loanPurposeCode: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class LenderShare(BaseModel):
+    entityAttributes: EntityAttributes
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    isDeleted: Optional[bool] = None
+    lenderId: Optional[str] = None
+    commitmentAmount: Optional[int] = None
+    proRata: Optional[int] = None
+    finalAllocation: Optional[int] = None
+
+
+class FeePricing(BaseModel):
+    entityAttributes: EntityAttributes
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    feeType: Optional[str] = None
+    feeCategory: Optional[str] = None
+    globalFeeAmount: Optional[str] = None
+    basis: Optional[str] = None
+    pricingEffectiveDate: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class FacilityInterestPricingOption(BaseModel):
+    entityAttributes: EntityAttributes
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    basis: Optional[str] = None
+    maximumDrawAmount: Optional[str] = None
+    minimumDrawAmount: Optional[str] = None
+    minimumMultiples: Optional[str] = None
+    ceiling: Optional[str] = None
+    floor: Optional[str] = None
+    pricingMaturityDate: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class Currency(BaseModel):
+    code: str
+    isPrimary: bool
+
+
+class FacilityInterestPricing(BaseModel):
+    entityAttributes: EntityAttributes
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    pricingType: Optional[str] = None
+    rateBasis: Optional[str] = None
+    spread: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class DealBorrower(BaseModel):
+    entityAttributes: EntityAttributes
+    customerExternalId: str
+    isPrimaryBorrower: Optional[bool] = None
+    isDeleted: Optional[bool] = None
+
+
+class SigningEntity(BaseModel):
+    entityAttributes: EntityAttributes
+    branch: str
+    processingArea: str
+
+
+class DealAdmin(BaseModel):
+    entityAttributes: EntityAttributes
+    customerExternalId: str
+    alias: str
+    profileType: str
+
+
+class DealFee(BaseModel):
+    entityAttributes: EntityAttributes
+    feeType: Optional[str] = None
+    effectiveDate: Optional[str] = None
+    expiryDate: Optional[str] = None
+    frequency: Optional[str] = None
+    arrearsAdvance: Optional[str] = None
+    amortizingAccrualBased: Optional[str] = None
+    nonBusinessDayRule: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class DealEventFee(BaseModel):
+    entityAttributes: EntityAttributes
+    eventFeeType: Optional[str] = None
+    flatAmountIndicator: Optional[str] = None
+    flatAmount: Optional[str] = None
+    distributeToAllLendersIndicator: Optional[str] = None
+    percentageRate: Optional[Any] = None
+    isDeleted: Optional[bool] = None
+
+
+class HolidayCalendar(BaseModel):
+    entityAttributes: EntityAttributes
+    code: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class PricingOption(BaseModel):
+    entityAttributes: EntityAttributes
+    optionName: Optional[str] = None
+    isDeleted: bool
+
+
+class AlternateIdentification(BaseModel):
+    name: Optional[str] = None
+    value: Optional[str] = None
+
+
+class Facility(BaseModel):
+    entityAttributes: EntityAttributes
+    facilityName: str
+    facilityType: str
+    effectiveDate: str
+    expiryDate: str
+    maturityDate: str
+    facilityGlobalAmount: str
+    closingCommitment: str
+    creditAgreementId: int
+    facilityId: int
+    alternateIdentification: List[AlternateIdentification]
+    currencies: Optional[List[Currency]] = None
+    isDeleted: Optional[bool] = None
+
+
+class BankRole(BaseModel):
+    value: str
+    percent: Optional[Any] = None
+
+
+class DealBankRole(BaseModel):
+    entityAttributes: EntityAttributes
+    customerExternalId: Optional[str] = None
+    expenseCode: Optional[str] = None
+    portfolioCode: Optional[str] = None
+    bankRole: Optional[List[BankRole]] = None
+    isDeleted: Optional[bool] = None
+
+
+class Deal(BaseModel):
+    entityAttributes: Optional[EntityAttributes] = None
+    dealId: str
+    dealName: str
+    status: Optional[str] = None
+    currency: str
+    department: str
+    expenseCode: Optional[str] = None
+    maxNumberOfLoansAllowed: Optional[int] = None
+    maxNumberOfUnfundedLoansAllowed: Optional[int] = None
+    comments: Optional[str] = None
+    eventType: Optional[str] = None
+    commitmentSignedDate: Optional[str] = None
+    creditAgreementType: Optional[str] = None
+    industry: Optional[str] = None
+    seniorityType: Optional[str] = None
+    commitmentCounterSignedDate: Optional[str] = None
+    subIndustry: Optional[str] = None
+    leverageLandingType: Optional[str] = None
+    globalOrganizationCodeType: Optional[str] = None
+    launchDate: Optional[datetime] = None
+    regulatorType: Optional[str] = None
+    description: Optional[str] = None
+    regionOfSyndicationType: Optional[str] = None
+    regionOfOriginationType: Optional[str] = None
+    creditAgreementDate: Optional[str] = None
+    purposeType: Optional[str] = None
+    isDeleted: Optional[bool] = None
+    alternateIdentification: Optional[List[AlternateIdentification]] = None
+    closingDate: Optional[str] = None
+    pricingOptions: Optional[List[PricingOption]] = None
+    holidayCalendars: Optional[List[HolidayCalendar]] = None
+    signingEntity: Optional[SigningEntity] = None
+    dealAdmin: Optional[DealAdmin] = None
+    dealBorrowers: Optional[List[DealBorrower]] = None
+    # dealBankRoles: Optional[List[DealBankRole]] = None
+    dealFees: Optional[List[DealFee]] = None
+    # dealEventFees: Optional[List[DealEventFee]] = None
+
+
+class BorrowerDetails(BaseModel):
+    entityAttributes: Optional[EntityAttributes] = None
+    creditAgreementId: Optional[int] = None
+    facilityId: Optional[int] = None
+    id: Optional[int] = None
+    borrowerId: Optional[str] = None
+    isPrimary: Optional[bool] = None
+    effectiveDate: Optional[str] = None
+    globalSublimit: Optional[str] = None
+    isDeleted: Optional[bool] = None
+
+
+class Counterparty(BaseModel):
+    entityAttributes: Optional[EntityAttributes] = None
+    isPrimary: Optional[bool] = None
+    isDeleted: Optional[bool] = None
+
+
+class LYNX(BaseModel):
+    # borrowerDetails: Optional[List[BorrowerDetails]] = None  # Refer Facility Borrower
+    lenderShare: Optional[List[LenderShare]] = None  # Refer Lenders
+    # facilities: Optional[List[Facility]] = None  # fetching only top facilities
+    # facilityInterestPricingOption: Optional[List[FacilityInterestPricingOption]] = None  # Refer Borrowing Mechanics & Pricing
+    # counterparties: Optional[List[Counterparty]] = None  # No info
+    # deal: Optional[Deal] = None  # No info
+    # facilityInterestPricing: Optional[List[FacilityInterestPricing]] = None  # NA
+    # feePricing: Optional[List[FeePricing]] = None  # NA
+    # loanPurpose: Optional[List[LoanPurpose]] = None  # NA
+
+
+# ## Load file bytes
+
+# In[12]:
+
+
+file_path = "/home/jupyter/docs/sec.gov_Archives_edgar_data_1018724_000110465923113444_tm2329405d1_ex10-1.htm.pdf"
+with open(file_path, "rb") as f:
+    file_bytes = f.read()
+
+# ## Prompt
+
+# In[13]:
+
+
+attribute_description = """ 
+CommitmentAmount: Citi's commitment / hold amount at close (either for sale or for investment / maturity) per the credit agreement
+ProRataPercentage: Percentage of the respective Issuing / Fronting Bank''s issuing / Fronting commitment amount divided by the total global facility commitment amount available for the specific instrument available
+
+FeeTypeCode: Code classifies fee- counting Accounting Units according to the type of fee that applies.
+PricingEffectiveDate: Effective / start / addition date in which this pricing option is available under the facility
+
+PricingMaximumDrawAmount: Maximum amount that a single draw / LC request can be made on using the specific pricing type
+PricingMinimumDrawAmount: Minimum amount that a single draw / LC request can be made on using the specific pricing type
+PricingMinimumMultiplesNumber: Minimum multiple in which a single draw / LC request can be made in for the specific pricing type (e.g. 1mm)
+
+FacilityPrimaryCurrencyCode: Currency Code
+FacilityTypeID: Type of facility being reviewed (e.g. revolving credit, term loan A, term loan B, etc.)
+FacilityGlobalAmount: Aggregate / total amount of the facility; sum of all lender shares if syndicated; equal to Citi commitment if bilateral loan
+FacilityEffectiveDate: Date in which the facility became effective and all CPs are met facility is available for use / draw
+FacilityMaturityDate: Date in which the facility matures / terminates after which no new principal can be released and all principal, interest, and fees due from the borrower(s) must be paid in full
+FacilityExpirationDate: Date in which the facility may no longer have new loan draws (e.g. term loans that are single draw should expire on the same day as the original draw)
+FacilityGlobalCurrentCommitmentAmount: Aggregate / total amount of the facility current amount (both LCs and loans); sum of all lender shares if syndicated; equal to citi commitment if bilateral loan (to feed from Loan IQ)
+"""
+
+# In[14]:
+
+
+# entity_extraction_prompt = """You are a document entity extraction specialist that deals with loan / credit contracts. Given a document, your task is to extract the text value of the entities provided in the schema.
+# - The values must only include text found in the document
+# - Do not normalize any entity values.
+# """
+
+entity_extraction_prompt = f"""
+You are an expert at data extraction and structured information processing. Your primary task is to meticulously extract all relevant entities and 
+their corresponding attributes from the provided document. Present the extracted data as a single JSON object, strictly adhering to the Pydantic schema. 
+If an attribute is defined as Optional and its value is not explicitly found in the document, omit that attribute from the JSON output. 
+If multiple instances of a list-type entity (e.g., `facilities`, `loanPurpose`) are found, include them all as a list of objects.
+
+Here are the entity attribute descriptions:
+{attribute_description}
+"""
+
+# ## Send to Gemini API
+
+# In[15]:
+
+
+# temp = client.models.generate_content(
+#     model=MODEL_ID,
+#     contents=[
+#         "Provided is a LoanOps Credit Agreement doc. Explain in brief what is covered in the doc.",
+#         Part.from_bytes(data=file_bytes, mime_type=PDF_MIME_TYPE),
+#     ],
+# )
+# print(temp.text)
+
+
+# In[26]:
+
+
+response = client.models.generate_content(
+    model=MODEL_ID,
+    contents=[
+        "The following document is a LoanOps Credit Agreement doc",
+        Part.from_bytes(data=file_bytes, mime_type=PDF_MIME_TYPE),
+    ],
+    config=GenerateContentConfig(
+        # system_instruction=temp.text + entity_extraction_prompt,
+        system_instruction=entity_extraction_prompt,
+        temperature=0,
+        response_schema=LYNX,
+        response_mime_type=JSON_MIME_TYPE,
+    ),
+)
+
+# In[20]:
+
+
+loan_contract_data = response.parsed
+print("\n-------Extracted Entities--------")
+print(loan_contract_data)
+
+# In[21]:
+
+
+json_object = json.loads(response.text)
+output_str = json.dumps(json_object, indent=3)
+print(output_str)
+
+# In[ ]:
+
+
+# In[ ]:
+
+
+# ## 2.5 pro response
+{
+    "borrowerDetails": [
+        {
+            "entityAttributes": {
+                "entityType": "BORROWER",
+                "externalId": 101
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 1001,
+            "borrowerId": "AMAZON.COM, INC.",
+            "isPrimary": true,
+            "effectiveDate": "2023-11-01",
+            "isDeleted": false
+        }
+    ],
+    "lenderShare": [
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 201
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2001,
+            "lenderId": "CITIBANK, N.A.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 202
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2002,
+            "lenderId": "BOFA SECURITIES, INC.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 203
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2003,
+            "lenderId": "DEUTSCHE BANK SECURITIES INC.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 204
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2004,
+            "lenderId": "HSBC SECURITIES (USA), INC.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 205
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2005,
+            "lenderId": "JPMORGAN CHASE BANK, N.A.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 206
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2006,
+            "lenderId": "WELLS FARGO SECURITIES, LLC",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 207
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2007,
+            "lenderId": "WELLS FARGO BANK, NATIONAL ASSOCIATION",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 208
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2008,
+            "lenderId": "BARCLAYS BANK PLC",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 209
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2009,
+            "lenderId": "BNP PARIBAS",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 210
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2010,
+            "lenderId": "GOLDMAN SACHS BANK USA",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 211
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2011,
+            "lenderId": "MORGAN STANLEY SENIOR FUNDING, INC.",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 212
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2012,
+            "lenderId": "ROYAL BANK OF CANADA",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 213
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2013,
+            "lenderId": "SOCI\u00c9T\u00c9 G\u00c9N\u00c9RALE",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 214
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2014,
+            "lenderId": "TD SECURITIES (USA) LLC",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 215
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2015,
+            "lenderId": "THE BANK OF NOVA SCOTIA",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 216
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2016,
+            "lenderId": "BANCO BILBAO VIZCAYA ARGENTARIA, S.A. NEW YORK BRANCH",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 217
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2017,
+            "lenderId": "BANCO SANTANDER, S.A., NEW YORK BRANCH",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 218
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2018,
+            "lenderId": "BANK OF CHINA, LOS ANGELES BRANCH",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 219
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2019,
+            "lenderId": "NATIONAL WESTMINSTER BANK PLC",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 220
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2020,
+            "lenderId": "STANDARD CHARTERED BANK",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        },
+        {
+            "entityAttributes": {
+                "entityType": "LENDER",
+                "externalId": 221
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 2021,
+            "lenderId": "U.S. BANK NATIONAL ASSOCIATION",
+            "commitmentAmount": null,
+            "proRata": null,
+            "finalAllocation": null
+        }
+    ],
+    "facilities": [
+        {
+            "entityAttributes": {
+                "entityType": "FACILITY",
+                "externalId": 1
+            },
+            "facilityName": "FIVE-YEAR REVOLVING CREDIT AGREEMENT",
+            "facilityType": "Revolving Credit Facility",
+            "effectiveDate": "2023-11-01",
+            "expiryDate": "2028-11-01",
+            "maturityDate": "2028-11-01",
+            "facilityGlobalAmount": "15000000000",
+            "closingCommitment": "15000000000",
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "alternateIdentification": [],
+            "currencies": [
+                {
+                    "code": "USD",
+                    "isPrimary": true
+                },
+                {
+                    "code": "EUR",
+                    "isPrimary": false
+                },
+                {
+                    "code": "GBP",
+                    "isPrimary": false
+                },
+                {
+                    "code": "JPY",
+                    "isPrimary": false
+                },
+                {
+                    "code": "CAD",
+                    "isPrimary": false
+                },
+                {
+                    "code": "AUD",
+                    "isPrimary": false
+                },
+                {
+                    "code": "CHF",
+                    "isPrimary": false
+                }
+            ],
+            "isDeleted": false
+        }
+    ],
+    "facilityInterestPricingOption": [
+        {
+            "entityAttributes": {
+                "entityType": "FACILITY_INTEREST_PRICING_OPTION",
+                "externalId": 301
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 3001,
+            "basis": "Base Rate",
+            "minimumDrawAmount": "1000000",
+            "minimumMultiples": "500000",
+            "isDeleted": false
+        },
+        {
+            "entityAttributes": {
+                "entityType": "FACILITY_INTEREST_PRICING_OPTION",
+                "externalId": 302
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 3002,
+            "basis": "Term Benchmark USD",
+            "minimumDrawAmount": "5000000",
+            "minimumMultiples": "1000000",
+            "isDeleted": false
+        },
+        {
+            "entityAttributes": {
+                "entityType": "FACILITY_INTEREST_PRICING_OPTION",
+                "externalId": 303
+            },
+            "creditAgreementId": 1,
+            "facilityId": 1,
+            "id": 3003,
+            "basis": "Alternative Currency Loan",
+            "minimumDrawAmount": "Smallest multiple of 1,000,000 units of the Alternative Currency with a US Dollar Equivalent of USD 5,000,000 or more",
+            "minimumMultiples": "Smallest multiple of 1,000,000 units of the Alternative Currency with a US Dollar Equivalent of USD 1,000,000 or more",
+            "isDeleted": false
+        }
+    ]
+}
+# In[ ]:
