@@ -13,8 +13,8 @@ from vertexai.generative_models import (
     GenerationConfig
 )
 
-from src.backend.prompts import (generate_script_prompt, visual_details_and_consistency_prompt,
-                                 generate_veo_compatible_prompt)
+from src.backend.prompts import (generate_script_prompt, generate_veo_compatible_prompt,
+                                 generate_veo_compatible_prompt_v2)
 
 # Gemini Safety config
 safety_config = [
@@ -52,8 +52,7 @@ def load_config():
         FileNotFoundError: If the config file doesn't exist.
         yaml.YAMLError: If there's an error parsing the YAML file.
     """
-    # config_file = Path(__file__).parent / "config.yaml"
-    config_file = Path(os.getcwd()) / "config.yaml"
+    config_file = Path(__file__).parent.parent / "config.yaml"
     print("Loading config: ", config_file)
 
     if not config_file.exists():
@@ -112,7 +111,6 @@ def get_scene_prompts(ad_idea: str) -> list:
     # Generate veo compatible prompts
     few_shot_prompts = config["veo"]["prompts"]
     generate_veo_prompts_prompt = generate_veo_compatible_prompt(
-        # input_script_data=generated_visually_detailed_script_json,
         input_script_data=generated_script_json,
         example_prompts=few_shot_prompts)
     generated_veo_prompts = call_gemini(model=model, prompt=generate_veo_prompts_prompt)
@@ -130,6 +128,7 @@ if __name__ == "__main__":
     input_ad_idea = "A chips packet ad"
 
     import time
+
     st = time.time()
     get_scene_prompts(ad_idea=input_ad_idea)
     print("total_time: ", time.time() - st)

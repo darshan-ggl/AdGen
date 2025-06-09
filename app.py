@@ -8,13 +8,16 @@ from src.backend import ad_generator
 from src.backend import video_ops
 from src.frontend import input_page, output_page
 
+# Set up logging for the main app
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Ensure the project root is in the path for imports
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+# Define page names
 INPUT_PAGE = "Input"
 OUTPUT_PAGE = "Output"
 
@@ -27,6 +30,9 @@ def _initialize_session_state():
         st.session_state['output_data'] = None
         st.session_state['scene_states'] = None
         st.session_state['initial_generation_pending'] = False
+        # Initialize tab state if needed, default to 'Quick AdGen'
+        if 'active_tab' not in st.session_state:
+            st.session_state['active_tab'] = "Quick AdGen"
         logger.info("Initial session state initialized.")
 
 
@@ -93,13 +99,11 @@ def _trigger_initial_video_generation():
         with st.spinner("Generating initial video clips for all scenes... This may take a few minutes."):
             for i, scene_state in enumerate(st.session_state['scene_states']):
                 prompt = scene_state['prompt_text']
-                duration = int(scene_state['scene_duration'])
-                if duration < 5:
-                    duration = 5
+                duration = scene_state['scene_duration']
 
                 # Define output location for initial clips
                 output_location = f"gs://veo2-exp/dummy/veo2_output_clips"
-                output_location = "gs://mrdarshan-veo-exp/veo2_output_clips/AdGen"
+                # output_location = "gs://mrdarshan-veo-exp/veo2_output_clips/AdGen"
 
                 generated_clips_data = video_ops.generate_video_clip(
                     prompt=prompt,
@@ -128,14 +132,8 @@ def _trigger_initial_video_generation():
         st.rerun()
 
 
-def main():
-    """
-    Main function to run the Streamlit application.
-    Orchestrates page navigation and backend workflow steps.
-    """
-    _initialize_session_state()
-    st.set_page_config(layout="wide", page_title="AI Ad Generator")
-
+def _render_quick_adgen_tab():
+    """Renders the content for the 'Quick AdGen' tab."""
     if st.session_state['current_page'] == INPUT_PAGE:
         input_data = input_page.render_input_page()
         _handle_input_submission(input_data)
@@ -157,6 +155,33 @@ def main():
 
         logger.info("Rendering output page with data and videos.")
         output_page.render_output_page(st.session_state['output_data'])
+
+
+def _render_product_adgen_tab():
+    """Renders the content for the 'Product AdGen' tab."""
+    st.info("This tab is under construction. Future features for product-centric ad generation will appear here!")
+
+
+def main():
+    """
+    Main function to run the Streamlit application.
+    Orchestrates page navigation and backend workflow steps within tabs.
+    """
+    _initialize_session_state()
+    st.set_page_config(layout="wide", page_title="AI Ad Generator")  # Page config for browser tab title
+
+    # Main application title and subheader, placed before tabs
+    st.title("✨ AI Ad Generator ✨")
+    st.subheader("Craft your perfect video ad with AI")
+
+    # Create tabs
+    tab_quick_adgen, tab_product_adgen = st.tabs(["Quick AdGen", "Product AdGen"])
+
+    with tab_quick_adgen:
+        _render_quick_adgen_tab()
+
+    with tab_product_adgen:
+        _render_product_adgen_tab()
 
 
 if __name__ == "__main__":

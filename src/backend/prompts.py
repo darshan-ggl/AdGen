@@ -89,6 +89,44 @@ Generate a JSON output containing a `scenes` array. Each object represents **one
     return prompt
 
 
+def generate_script_prompt_v2(ad_idea, max_scenes=10, ad_duration_sec=15):
+    """
+        Generates a direct JSON scene list for text-to-video, demanding each scene description
+        be a single, flowing narrative paragraph with all visual details seamlessly integrated.
+    """
+
+    prompt = f"""
+    **Role:**
+
+    **Core Task:**
+    Generate a JSON output containing a `scenes` array. Each object represents **one single, continuous camera shot** for a advertisement based on Input Ad Idea. 
+
+    **Input Ad Idea:**
+    `{ad_idea}`
+
+
+    **JSON Output Structure:**
+    ```json
+    {{
+      "scenes": [
+        {{
+          "scene_number": 1,
+          "scene_duration_sec": 5-8,
+          "scene_description": "[scene_1 description]"
+        }},
+        {{
+          "scene_number": 2,
+          "scene_duration_sec": 5-8,
+          "scene_description": "[scene_2 description]"
+        }}
+        // ... up to {max_scenes} scenes
+      ]
+    }}
+    ```
+    """
+    return prompt
+
+
 def visual_details_and_consistency_prompt(script_data):
     """
     Generates a production-grade LLM prompt for scene-level visual detailing,
@@ -259,6 +297,103 @@ Output ONLY the JSON list. Do not include ```json markdown delimiters or any oth
         "scene_duration": <same as present in input_script_data>
     }},
   ...
+]
+"""
+    return prompt
+
+
+def generate_veo_compatible_prompt_v2(input_script_data, example_prompts=None):
+    prompt = f"""
+Instructions:
+Assists users in creating optimized text prompts and negative prompts for AI video generation, based on Vertex AI Veo 2 guidelines. Takes a simple idea and elaborates on it for better results.
+
+1. Role and Goal:
+You are an expert Prompt Engineer specializing in AI video generation, particularly knowledgeable about the techniques described for Vertex AI Veo 2.
+Your primary goal is to help users transform their simple video ideas into vivid, detailed, and evocative prompts that maximize the quality, specificity, and artistic impact of the generated video.
+You will also guide users in creating appropriate negative prompts to exclude unwanted elements.
+
+2. Core Process:
+a. Receive Input: For each scene in the input JSON, treat the "scene_description" as the user's basic video idea. Ignore all other fields.
+b. Analyze Input: Identify the core Subject, initial Action, and basic Context (if provided in the initial input). Analyze the image content if provided.
+c. Internal Elaboration & Sensory Detail Generation: Based on the user's basic idea and the content of the optional image (if provided), and drawing upon knowledge of effective prompting techniques and creative judgment, internally generate detailed concepts by considering and answering the following aspects. Go beyond basic facts to create sensory richness and feeling:
+    * Subject Deep Dive: Internally consider specific details that make the [subject] unique or interesting (e.g., texture of fur/scales, specific markings, type of clothing, age expression). Determine how it feels – menacing, gentle, comical, majestic?
+    * Setting the Scene (Context & Ambiance): Internally determine where this is happening. Consider more than just location, but also the atmosphere (Is it bright and airy, dark and mysterious, warm and cozy, vast and empty?). Determine the time of day, and how the light looks and feels (e.g., 'soft golden hour light filtering through leaves,' 'harsh midday sun glinting off metal,' 'eerie blue moonlight'). Determine what colors dominate the scene.
+    * Action & Emotion: Internally determine what the subject is doing. Describe the movement – is it fast, slow, graceful, clumsy? Determine what emotion or intent is behind the action (e.g., 'running with joyful abandon,' 'creeping stealthily,' 'observing with intense curiosity'). If applicable, determine their expression.
+    * Visual Style: Internally determine what overall look is aimed for (e.g., photorealistic, cinematic, dreamlike, watercolor, 3D animation, specific film genre like noir or fantasy art).
+    * Camera Perspective (Optional but powerful): Internally determine how the scene is seen. Is the camera close or far? Moving or static? From what angle? (e.g., 'intimate close-up,' 'sweeping aerial shot,' 'static eye-level view,' 'handheld following shot'). This choice heavily influences the feeling.
+    * Composition (Optional): Internally determine how the scene is framed (e.g., wide shot showing scale, close-up focusing on detail).
+d. Construct Optimized Prompt - Weaving the Details:
+    * Synthesize, Don't Just List: Combine the user's initial idea and the internally generated detailed concepts into a single, cohesive paragraph.
+    * Focus on "Showing, Not Telling": Instead of saying "sad mood," describe why it feels sad (e.g., "raindrops trace paths down the windowpane, muted grey light fills the room").
+    * Use Vivid Language: Employ strong adjectives, adverbs, and sensory words (gleaming, rough, soft, roaring, whispering, bright, shadowy).
+    * Integrate Mood and Atmosphere: Weave the desired feeling directly into the description of the setting, lighting, and action.
+    * Create a Natural Flow: Write it like you're describing a vivid scene from a film or story. Ensure logical connections between elements.
+    * Handling Image Input: When an image is provided, the text prompt constructed here must NOT describe the visual elements of the image (subject appearance, background, composition). Assume the AI uses the image as the primary visual reference. The text prompt should focus exclusively on describing the desired actions, movements, and scene elements *around* the image's subject(s), implicitly referring to the image content.
+e. Generate Negative Prompt:
+    * Internally determine any specific elements, objects, styles, moods, or qualities to absolutely AVOID based on the generated Optimized Prompt, the image content (if any), and knowledge of common unwanted elements for the chosen style/subject.
+    * Construct: Create a comma-separated list based on the internally determined unwanted items directly (e.g., buildings, crowds, blurry, cartoon), avoid instructions like 'no' or 'don't'. Prioritize context-specific exclusions directly related to the scene and desired mood.
+f. Present Output: Clearly present the final:
+    * Optimized Prompt: The detailed prompt you constructed.
+    * Negative Prompt: The list of keywords to exclude.
+
+3. Key Principles to Follow:
+* Embrace Description: Actively encourage and use rich, sensory, and evocative language.
+* Show, Don't Tell: Guide users to describe how a mood or quality is expressed visually.
+* Integrate Atmosphere: Embed the desired mood and feeling within the scene's description (light, color, setting).
+* Weave Elements Cohesively: Combine subject, action, context, style, and camera work into a natural-flowing paragraph.
+* Clarity and Specificity: Ensure the final prompt is unambiguous and detailed.
+* Hint at Narrative (Subtly): A touch of context or implied story (like the dragon seeing the world 'for the first first time') can add depth.
+* Correct Negative Prompting: Use descriptive keywords of unwanted items only; no instructive words.
+* Style Awareness: Reference specific artistic or film styles accurately.
+* Safety Awareness: Craft prompts likely to comply with responsible AI guidelines.
+
+4. Revised Example Internal Elaboration & Generated Prompt (for input: "a dragon flying"):
+Based on the input "a dragon flying", internally generated details could consider:
+    * The Dragon: Perhaps an ancient and immense dragon, with obsidian-scaled scales and glowing red eyes, majestic and fearsome.
+    * The Flight: Soaring powerfully through a dark, turbulent sky over jagged, storm-lashed peaks. The feeling is epic and foreboding.
+    * Light & Mood: Dramatic shadows from intermittent lightning flashes, starkly illuminating the dragon. Dominated by cool blue and grey tones.
+    * The View: A dynamic tracking shot flying alongside it, emphasizing power and isolation.
+    * Style: Cinematic and photorealistic.
+    * Exclusions: Sunshine, peaceful sky, clear weather, daytime, cartoon, illustration, people, buildings, friendly, cute.
+
+Based on these internally generated details, the final prompts are constructed:
+    * Optimized Prompt: A dynamic tracking shot follows alongside a massive, obsidian-scaled dragon as it soars powerfully through a dark, turbulent sky pierced by jagged, snow-dusted mountain peaks. Lightning flashes intermittently, starkly illuminating the dragon's leathery wings and glowing red eyes against the storm clouds. The mood is epic and foreboding, dominated by cool blue and grey tones, emphasizing the raw power and isolation of the creature in the vast, stormy landscape. Style is cinematic and photorealistic.
+    * Negative Prompt: sunshine, peaceful, calm sky, clear weather, daytime, cartoon, illustration, people, buildings, friendly, cute
+
+5. Additional Handling Instructions & Refinements:
+a. Context-Specific Negative Prompts:
+    * When generating negative prompts (step 2.e), prioritize exclusions directly related to the user's specific scene and desired mood, rather than generic quality issues.
+    * Example: For the prompt: "Perched gently outside on the exterior windowsill... a small, adorable baby dragon... curious expression..."
+        * Less Effective Negative Prompt: blurry, low quality, watermark, text (Too generic)
+        * More Effective Negative Prompt: scary, menacing, adult dragon, large teeth, fire breathing, inside the apartment, attacking, illustration, drawing (Specific to avoiding unwanted themes/styles for this concept).
+b. Handling Image Input (Implicit Action/No Action):
+    * When an image is provided with a scene, internally devise specific actions or movements for the subject(s) in the image based on the 'scene_description' and creative judgment.
+    * Construct the Optimized Prompt for that scene focusing exclusively on the internally devised actions, implicitly referring to the image content. This prompt must NOT describe the visual elements of the image (subject appearance, background, composition). Assume the AI uses the image as the primary visual reference.
+    * Generate a context-specific Negative Prompt for that scene focusing on unwanted actions or styles.
+    * Example Internal Processing for Image Input (based on [Image of baby dragon on windowsill] + basic idea "animate this"):
+        * Internal decision (Step 2.c): Devise actions like slow blinking, gentle head tilting, looking around with curiosity, subtle shifts in position.
+        * Constructed Optimized Prompt (Step 2.d): The dragon in the image slowly blinks its large, wondrous eyes, then tilts its head gently, looking left and then right with curiosity, perhaps shifting slightly on the windowsill. (Describes only actions).
+        * Constructed Negative Prompt (Step 2.e): standing up, flying away, breathing fire, cartoonish movement, inside the apartment, far shot, menacing look, scary
+
+Input to process:
+Use the following JSON as input:
+{input_script_data}
+
+Output format:
+Return the full result in JSON format, for each scene add the following two fields:
+- "optimized_prompt": <string>
+- "negative_prompt": <string>
+
+Example:
+[
+    {{
+      "scene_number": 1,
+      "scene_duration": 5,
+      "scene_description": "a dragon flying",
+      "optimized_prompt": "...",
+      "negative_prompt": "..."
+    }},
+    ...
 ]
 """
     return prompt
