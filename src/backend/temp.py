@@ -382,10 +382,10 @@ class Counterparty(BaseModel):
 
 
 class LYNX(BaseModel):
-    # borrowerDetails: Optional[List[BorrowerDetails]] = None  # Refer Facility Borrower
+    borrowerDetails: Optional[List[BorrowerDetails]] = None  # Refer Facility Borrower
     lenderShare: Optional[List[LenderShare]] = None  # Refer Lenders
-    # facilities: Optional[List[Facility]] = None  # fetching only top facilities
-    # facilityInterestPricingOption: Optional[List[FacilityInterestPricingOption]] = None  # Refer Borrowing Mechanics & Pricing
+    facilities: Optional[List[Facility]] = None  # fetching only top facilities
+    facilityInterestPricingOption: Optional[List[FacilityInterestPricingOption]] = None  # Refer Borrowing Mechanics & Pricing
     # counterparties: Optional[List[Counterparty]] = None  # No info
     # deal: Optional[Deal] = None  # No info
     # facilityInterestPricing: Optional[List[FacilityInterestPricing]] = None  # NA
@@ -882,3 +882,80 @@ print(output_str)
     ]
 }
 # In[ ]:
+
+
+## JSON Structure
+""""
+Your task is to extract information and format it as a JSON object. 
+The JSON should strictly adhere to the following structure. Pay close attention to whether a field expects a single object or a list of objects.
+
+{
+  "borrowerDetails": {
+    "creditAgreementId": "integer | null",
+    "facilityId": "integer | null",
+    "id": "integer | null",
+    "borrowerId": "string | null",
+    "isPrimary": "boolean | null",
+    "effectiveDate": "string | null (YYYY-MM-DD)",
+    "globalSublimit": "string | null",
+    "isDeleted": "boolean | null"
+  },
+  "lenderShares": [ // This indicates a list of objects
+    {
+      "creditAgreementId": "integer | null",
+      "facilityId": "integer | null",
+      "id": "integer | null",
+      "isDeleted": "boolean | null",
+      "lenderId": "string | null",
+      "commitmentAmount": "integer | null",
+      "proRata": "integer | null",
+      "finalAllocation": "integer | null"
+    }
+  ],
+  "facilities": [ // This indicates a list of objects
+    {
+      "facilityName": "string",
+      "facilityType": "string",
+      "effectiveDate": "string (YYYY-MM-DD)",
+      "expiryDate": "string (YYYY-MM-DD)",
+      "maturityDate": "string (YYYY-MM-DD)",
+      "facilityGlobalAmount": "string",
+      "closingCommitment": "string",
+      "creditAgreementId": "integer",
+      "facilityId": "integer",
+      "alternateIdentification": [ // This indicates a list of objects
+        {
+          "name": "string | null",
+          "value": "string | null"
+        }
+      ],
+      "currencies": [ // This indicates a list of objects (assuming Currency structure)
+        { 
+          "code": "string", 
+          "symbol": "string" 
+        }
+      ],
+      "isDeleted": "boolean | null"
+    }
+  ],
+  "facilityInterestPricingOptions": [ // This indicates a list of objects
+    {
+      "creditAgreementId": "integer | null",
+      "facilityId": "integer | null",
+      "id": "integer | null",
+      "basis": "string | null",
+      "maximumDrawAmount": "string | null",
+      "minimumDrawAmount": "string | null",
+      "minimumMultiples": "string | null",
+      "ceiling": "string | null",
+      "floor": "string | null",
+      "pricingMaturityDate": "string | null (YYYY-MM-DD)",
+      "isDeleted": "boolean | null"
+    }
+  ]
+}
+
+Extract the relevant information from the following text and provide the output as a JSON object strictly adhering to the schema provided above. Ensure all fields are included, even if null.
+
+[Your input text here, e.g., details about a credit agreement, borrower, etc.]
+"""
