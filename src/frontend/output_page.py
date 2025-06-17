@@ -5,9 +5,12 @@ from typing import List, Dict, Any
 import streamlit as st
 
 from src.backend import video_ops
+from src.backend.utils import load_config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+config = load_config()
 
 
 def initialize_scene_state(output_data: List[Dict[str, Any]]):
@@ -104,7 +107,10 @@ def regenerate_scene_video(scene_index: int):
         logger.info(f"Calling backend to regenerate Scene {scene_index} with prompt: {edited_prompt[:50]}...")
 
         try:
-            output_location = f"gs://veo2-exp/dummy/regenerated_clips/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
+            # output_location = f"gs://veo2-exp/AdGen/output_clips/regenerated_clips/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
+            # output_location = f"gs://mrdarshan-veo-exp/veo2_output_clips/AdGen/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
+            veo_output_location = config['veo']['veo_output_dir']
+            output_location = f"{veo_output_location}/regenerated_clips/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
             st.session_state['regen_count'] = st.session_state.get('regen_count', 0) + 1
 
             with st.spinner(f"Generating new videos for Scene {scene_index + 1}..."):
@@ -173,18 +179,17 @@ def generate_final_video():
     logger.info(f"Calling backend to merge videos with gs:// URIs: {gcs_video_urls}")
 
     try:
-        # output_location = f"gs://veo2-exp/dummy/final_ads/ad_{timestamp}"
-        output_location = "/Users/mrdarshan/PycharmProjects/AdGen/data/videos/final_video"
+        final_video_location = f"{config['veo']['veo_output_dir']}/final_ads/ad.mp4"
 
         with st.spinner("Merging videos and generating final ad..."):
             # Call merge_video_clips and expect a local file path
             final_video_path = video_ops.merge_video_clips(
                 gcs_video_urls=gcs_video_urls,
-                output_location=output_location
+                output_location=final_video_location
             )
 
         # Display the local file path directly
-        if final_video_path and os.path.exists(final_video_path):
+        if final_video_path:
             st.success("Final video generated!")
             logger.info(f"Final merged video path: {final_video_path}")
 
@@ -194,8 +199,8 @@ def generate_final_video():
             st.info(f"Video saved locally at: {final_video_path}")
 
         else:
-            st.error("Failed to generate final video locally.")
-            logger.error("merge_video_clips did not return a valid local path or file does not exist.")
+            st.error("Failed to generate final video.")
+            logger.error("merge_video_clips did not return a valid path or file does not exist.")
 
     except Exception as e:
         logger.error(f"Error during final video generation: {e}")

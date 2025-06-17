@@ -1,8 +1,6 @@
 """Ad Generator"""
 import json
-from pathlib import Path
 import logging
-import yaml
 
 from vertexai.generative_models import (
     GenerativeModel,
@@ -13,7 +11,7 @@ from vertexai.generative_models import (
 )
 
 from src.backend.prompts import (generate_script_prompt, generate_veo_compatible_prompt)
-
+from src.backend.utils import load_config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,30 +41,6 @@ safety_config = [
 ]
 
 
-def load_config():
-    """
-    Loads the configuration from a YAML file located at the project's root.
-
-    Returns:
-        dict: The parsed YAML configuration.
-
-    Raises:
-        FileNotFoundError: If the config file doesn't exist.
-        yaml.YAMLError: If there's an error parsing the YAML file.
-    """
-    config_file = Path(__file__).parent.parent / "config.yaml"
-    logging.info(f"Loading config: {config_file}")
-
-    if not config_file.exists():
-        raise FileNotFoundError(f"Config file not found: {config_file}")
-
-    try:
-        with open(config_file, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing config file: {e}")
-
-
 def call_gemini(model, prompt) -> str:
     """Makes an API call to Gemini"""
     logging.info("Making Gemini call")
@@ -88,7 +62,7 @@ def get_scene_prompts(ad_idea: str) -> list:
     """
     config = load_config()
     model = GenerativeModel(
-        model_name=config["llm"]["gemini"]["model_name"],
+        model_name=config["gemini"]["model_name"],
         safety_settings=safety_config,
         generation_config=GenerationConfig(
             response_mime_type="application/json",

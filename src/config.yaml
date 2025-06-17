@@ -3,15 +3,19 @@ project:
   region: us-central1
   location: global
 
-llm:
-  gemini:
-    model_name: "gemini-2.0-flash"
-    batch_size: 3500  # token count
+gemini:
+  model_name: "gemini-2.0-flash"
+  batch_size: 3500  # token count
 
-  imagen:
-    model_name: "imagen-3.0-generate-002"
+imagen:
+  model_name: "imagen-3.0-generate-002"
+  image_output_dir: "gs://veo2-exp/AdGen/asset"
 
 veo:
+  model_name: "veo-2.0-generate-001"
+  number_of_videos:
+  veo_output_dir: "gs://veo2-exp/AdGen/output_clips"
+
   prompts:
     - The camera moves in a slow dolly shot, revealing the opulence of a Renaissance palace chamber adorned with
       gold-inlaid furniture, velvet drapes, and chandeliers casting soft, flickering light. A queen sits motionless
@@ -59,6 +63,4 @@ veo:
       stunning macro detail.
 
 
-output:
-  bucket_name: "veo2-exp"
-  video_dir: f"gs://{{ output.bucket_name }}/translation-mvp-exp-results/output_vtt"
+

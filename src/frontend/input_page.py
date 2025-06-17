@@ -6,9 +6,13 @@ import time
 
 import streamlit as st
 from src.backend import video_ops
+from src.backend.utils import load_config
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+config = load_config()
 
 
 def render_input_page() -> Optional[Dict[str, Any]]:
@@ -50,10 +54,9 @@ def render_input_page() -> Optional[Dict[str, Any]]:
                 logger.info(f"New image uploaded: {uploaded_image.name}. Uploading to GCS.")
                 with st.spinner("Uploading image to cloud storage..."):
                     timestamp = int(time.time())
-                    # image_destination_blob = f"your-ad-generator-bucket/uploaded_images/{timestamp}_{uploaded_image.name}"
-                    image_destination_blob = f"mrdarshan-veo-exp/AdGen/Uploaded_Images/{timestamp}_{uploaded_image.name}"
+                    image_destination_blob = f"{config['imagen']['image_output_dir']}/{timestamp}_{uploaded_image.name}"
 
-                    gcs_uri = video_ops.upload_streamlit_file_to_gcs(uploaded_image, image_destination_blob)
+                    gcs_uri = video_ops.upload_file_to_gcs(uploaded_image, image_destination_blob)
 
                     if gcs_uri:
                         st.session_state['uploaded_image_gcs_uri'] = gcs_uri
@@ -105,7 +108,7 @@ def render_input_page() -> Optional[Dict[str, Any]]:
         with col4:
             person_generation = st.selectbox(
                 "Person Generation",
-                options=["dont_allow", "allow_adult"],
+                options=["allow_adult", "dont_allow"],
                 help="Control whether people are allowed in the generated video."
             )
 
@@ -113,7 +116,7 @@ def render_input_page() -> Optional[Dict[str, Any]]:
             "Negative Prompt (Optional)",
             help="Specify elements you want to avoid in the generated video."
         )
-        st.markdown("---")
+        # st.markdown("---")
 
         _, _, submit_col = st.columns([3, 3, 1])
 

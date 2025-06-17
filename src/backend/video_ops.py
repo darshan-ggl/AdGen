@@ -4,59 +4,18 @@ import os
 import time
 import logging
 import tempfile
-from typing import List, Dict, Any, Optional
-from urllib.parse import urlparse
 
 import ffmpeg
 from google import genai
 from google.cloud import storage
 from google.genai.types import GenerateVideosConfig, Image
 
+from src.backend.utils import load_config, upload_file_to_gcs, generate_signed_url
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-def upload_streamlit_file_to_gcs(uploaded_file, destination_blob_name: str) -> Optional[str]:
-    """
-    Uploads a file-like object from Streamlit's file_uploader to GCS.
-
-    Args:
-        uploaded_file: The file-like object from st.file_uploader.
-        destination_blob_name (str): The full path including bucket name (e.g., 'your-bucket/your-folder/your-file.png').
-
-    Returns:
-        Optional[str]: The GCS URI (gs://...) of the uploaded file if successful, None otherwise.
-    """
-    if uploaded_file is None:
-        logger.info("No file provided for GCS upload.")
-        return None
-
-    storage_client_instance = storage.Client()
-
-    try:
-        # Split the destination blob name into bucket and blob path
-        # Assuming destination_blob_name is like 'your-bucket/your-folder/your-file.png'
-        bucket_name, blob_name = destination_blob_name.split('/', 1)
-
-        bucket = storage_client_instance.bucket(bucket_name)
-        blob = bucket.blob(blob_name)
-
-        # Upload the file object directly
-        blob.upload_from_file(uploaded_file)
-
-        gcs_uri = f"gs://{bucket_name}/{blob_name}"
-        logger.info(f"Uploaded Streamlit file to GCS: {gcs_uri}")
-
-        # Note: Implementing deletion on app close is complex in Streamlit's serverless
-        # nature. This is a TODO for a production system, likely requiring a separate
-        # cleanup mechanism.
-
-        return gcs_uri
-
-    except Exception as e:
-        logger.error(f"Error uploading Streamlit file to GCS destination {destination_blob_name}: {e}")
-        return None
+config = load_config()
 
 
 # def generate_video_clip(
@@ -131,9 +90,9 @@ def generate_video_clip(
         A list of dictionaries, each containing 'gs_uri' and 'http_url'
         for the generated video clips. Empty list if generation fails.
     """
-    
-    os.environ["GOOGLE_CLOUD_PROJECT"] = "veo-testing"
-    os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
+
+    os.environ["GOOGLE_CLOUD_PROJECT"] = config["project"]["id"]
+    os.environ["GOOGLE_CLOUD_LOCATION"] = config["project"]["region"]
     os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
     image_param = None
@@ -142,9 +101,12 @@ def generate_video_clip(
 
     requested_number_of_videos = 2
 
+    # Handle duration
+    duration_seconds = max(5, min(duration_seconds, 8))
+
     client = genai.Client()
     operation = client.models.generate_videos(
-        model="veo-2.0-generate-001",
+        model=config["veo"]["model_name"],
         # image=image_param,
         prompt=prompt,
         config=GenerateVideosConfig(
@@ -156,16 +118,16 @@ def generate_video_clip(
             negative_prompt=negative_prompt,
             enhance_prompt=True,
             seed=None,
-            
+
         ),
     )
 
     logger.info("Waiting for operation to complete.")
-    
+
     while not operation.done:
         time.sleep(10)
         operation = client.operations.get(operation)
-        
+
     print("operation: ", operation)
     logger.info("Operation Completed!")
 
@@ -205,7 +167,7 @@ def download_from_gcs(gcs_urls, local_dir="temp_videos"):
             parent_dir_name = os.path.basename(os.path.dirname(blob_name))
             if not os.path.exists(os.path.join(local_dir, parent_dir_name)):
                 os.makedirs(os.path.join(local_dir, parent_dir_name))
-            
+
             local_filename = os.path.join(local_dir, parent_dir_name, os.path.basename(blob_name))
             bucket = storage_client.bucket(bucket_name)
             blob = bucket.blob(blob_name)
@@ -219,7 +181,6 @@ def download_from_gcs(gcs_urls, local_dir="temp_videos"):
 
 
 def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
-    output_file_path = os.path.join(output_location, "final_video.mp4")  # fixme: later needs to be gcs location
     local_paths = download_from_gcs(gcs_video_urls, temp_dir)
 
     if not local_paths:
@@ -232,7 +193,6 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
         formatted_path = absolute_path.replace('\\', '/')
         list_content += f"file '{formatted_path}'\n"
 
-    temp_list_filepath = None
     try:
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.txt', dir=temp_dir) as f:
             temp_list_filepath = f.name
@@ -243,14 +203,23 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
         absolute_temp_list_filepath = os.path.abspath(temp_list_filepath)
         formatted_temp_list_filepath = absolute_temp_list_filepath.replace('\\', '/')
 
-        (
-            ffmpeg
-            .input(formatted_temp_list_filepath, f='concat', safe=0)
-            .output(output_file_path, c='copy')
-            .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
-        )
-        logger.info(f"Successfully merged videos to {output_file_path} using concat demuxer.")
-        # TODO: Add logic to upload to gcs
+        with tempfile.NamedTemporaryFile(mode='wb', delete=True, suffix="final_ad.mp4",
+                                         dir=temp_dir) as temp_output_file:
+            temp_file_path = temp_output_file.name
+            (
+                ffmpeg
+                .input(formatted_temp_list_filepath, f='concat', safe=0)
+                .output(temp_file_path, c='copy')
+                .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+            )
+            logger.info(f"Successfully merged videos to {temp_file_path} using concat demuxer.")
+
+            # Upload to gcs
+            with open(temp_file_path, 'rb') as source_file:
+                uploaded_file_path = upload_file_to_gcs(file_object=source_file, gcs_destination_path=output_location)
+
+            signed_url = generate_signed_url(uploaded_file_path)
+            return signed_url
 
     except ffmpeg.Error as e:
         logger.error('ffmpeg error:')
@@ -271,32 +240,4 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
     #         os.rmdir(temp_dir)
     #         logger.info(f"Removed temporary directory: {temp_dir}")
 
-    return output_file_path
-
-
-if __name__ == "__main__":
-    # gcs_urls = [
-    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_0.mp4",
-    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_1.mp4",
-    #     "gs://veo2-exp/dummy/veo2_output_clips_15137911166599222061_sample_2.mp4"
-    # ]
-    #
-    # output_file = "fast_merged_video.mp4"
-    #
-    # print(f"Attempting to merge videos from GCS: {gcs_urls} into {output_file}")
-    # merge_video_clips(gcs_urls, output_file)
-    # print("Merging process finished.")
-
-    # output_location = "gs://veo2-exp/dummy/veo2_output_clips"
-    # out = generate_video_clip(
-    #     prompt="prompt",
-    #     output_location=output_location,
-    #     aspect_ratio="aspect_ratio",
-    #     duration_seconds="duration",
-    #     person_generation="person_generation",
-    # )
-    # import json
-    #
-    # print(json.dumps(out, indent=3))
-
-    pass
+    return output_location

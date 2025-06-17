@@ -6,11 +6,14 @@ from pathlib import Path
 import streamlit as st
 from src.backend import ad_generator
 from src.backend import video_ops
+from src.backend.utils import load_config
 from src.frontend import input_page, output_page
 
 # Set up logging for the main app
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+config = load_config()
 
 # Ensure the project root is in the path for imports
 project_root = Path(__file__).parent.parent
@@ -77,7 +80,7 @@ def _trigger_initial_video_generation():
 
     ad_input_data = st.session_state['ad_input_data']
     aspect_ratio = ad_input_data.get('aspect_ratio', '16:9')
-    person_generation = ad_input_data.get('person_generation', 'dont_allow')
+    person_generation = ad_input_data.get('person_generation', 'allow_adult')
     uploaded_image = ad_input_data.get('uploaded_image', None)
     product_name = ad_input_data.get('product_name', '')
     negative_prompt = ad_input_data.get('negative_prompt', '')
@@ -85,8 +88,8 @@ def _trigger_initial_video_generation():
     image_gcs_uri = None
     if uploaded_image:
         logger.info(f"Uploaded image detected: {uploaded_image.name}. Uploading to GCS.")
-        image_destination_blob = f"your-ad-generator-bucket/uploaded_images/{uploaded_image.name}"
-        image_gcs_uri = video_ops.upload_streamlit_file_to_gcs(uploaded_image, image_destination_blob)
+        image_destination_blob = f"{config['imagen']['image_output_dir']}"
+        image_gcs_uri = video_ops.upload_file_to_gcs(uploaded_image, image_destination_blob)
         if image_gcs_uri:
             logger.info(f"Image uploaded to GCS: {image_gcs_uri}")
         else:
@@ -101,10 +104,7 @@ def _trigger_initial_video_generation():
                 prompt = scene_state['prompt_text']
                 duration = scene_state['scene_duration']
 
-                # Define output location for initial clips
-                output_location = f"gs://veo2-exp/dummy/veo2_output_clips"
-                # output_location = "gs://mrdarshan-veo-exp/veo2_output_clips/AdGen"
-
+                output_location = config["veo"]["veo_output_dir"]
                 generated_clips_data = video_ops.generate_video_clip(
                     prompt=prompt,
                     output_location=output_location,
@@ -171,7 +171,7 @@ def main():
     st.set_page_config(layout="wide", page_title="AI Ad Generator")  # Page config for browser tab title
 
     # Main application title and subheader, placed before tabs
-    st.title("✨ AI Ad Generator ✨")
+    st.title("📽️ AI Ad Generator")
     st.subheader("Craft your perfect video ad with AI")
 
     # Create tabs
