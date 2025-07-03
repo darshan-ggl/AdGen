@@ -4,6 +4,7 @@ import os
 import time
 import logging
 import tempfile
+from typing import Union
 
 import ffmpeg
 from google import genai
@@ -70,7 +71,7 @@ def generate_video_clip(
         duration_seconds: int,
         person_generation: str,
         negative_prompt: str = None,
-        image_gcs_uri: str = None,
+        image_data: Union[str, bytes] = None,
         metadata: dict = None,
 ):
     """
@@ -83,7 +84,7 @@ def generate_video_clip(
         duration_seconds: Video duration in seconds (5-8).
         person_generation: Setting for generating people ("allow_adult" or "dont_allow").
         negative_prompt: Optional prompt to discourage content.
-        image_gcs_uri: Optional GCS URI of an image for image-to-video.
+        image_data: Optional GCS URI of an image for image-to-video.
         metadata: Optional dictionary for metadata (not used in API call).
 
     Returns:
@@ -95,9 +96,13 @@ def generate_video_clip(
     os.environ["GOOGLE_CLOUD_LOCATION"] = config["project"]["region"]
     os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
-    image_param = None
-    if image_gcs_uri:
-        image_param = Image(gcs_uri=image_gcs_uri, mime_type="image/png")
+    if isinstance(image_data, bytes):
+        image = Image(image_bytes=image_data, mime_type="image/png")
+
+    elif image_data and image_data.startswith("gs://"):
+        image = Image(gcs_uri=image_data, mime_type="image/png")
+    else:
+        image = None
 
     requested_number_of_videos = 2
 
@@ -107,7 +112,7 @@ def generate_video_clip(
     client = genai.Client()
     operation = client.models.generate_videos(
         model=config["veo"]["model_name"],
-        # image=image_param,
+        image=image,
         prompt=prompt,
         config=GenerateVideosConfig(
             aspect_ratio=aspect_ratio,

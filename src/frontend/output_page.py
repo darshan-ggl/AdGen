@@ -107,8 +107,6 @@ def regenerate_scene_video(scene_index: int):
         logger.info(f"Calling backend to regenerate Scene {scene_index} with prompt: {edited_prompt[:50]}...")
 
         try:
-            # output_location = f"gs://veo2-exp/AdGen/output_clips/regenerated_clips/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
-            # output_location = f"gs://mrdarshan-veo-exp/veo2_output_clips/AdGen/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
             veo_output_location = config['veo']['veo_output_dir']
             output_location = f"{veo_output_location}/regenerated_clips/scene_{scene_index}_{st.session_state.get('regen_count', 0)}"
             st.session_state['regen_count'] = st.session_state.get('regen_count', 0) + 1
@@ -120,7 +118,7 @@ def regenerate_scene_video(scene_index: int):
                     aspect_ratio=aspect_ratio,
                     duration_seconds=duration,
                     person_generation=person_generation,
-                    image_gcs_uri=image_gcs_uri
+                    image_data=image_gcs_uri
                 )
             st.success(f"New videos generated for Scene {scene_index + 1}.")
             logger.info(f"Backend returned new video data for Scene {scene_index}: {generated_clips_data}")

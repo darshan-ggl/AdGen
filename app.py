@@ -7,7 +7,7 @@ import streamlit as st
 from src.backend import ad_generator
 from src.backend import video_ops
 from src.backend.utils import load_config
-from src.frontend import input_page, output_page
+from src.frontend import input_page, output_page, vto_page
 
 # Set up logging for the main app
 logging.basicConfig(level=logging.INFO)
@@ -113,7 +113,7 @@ def _trigger_initial_video_generation():
                     person_generation=person_generation,
                     metadata=metadata,
                     negative_prompt=negative_prompt,
-                    image_gcs_uri=image_gcs_uri
+                    image_data=image_gcs_uri
                 )
                 st.session_state['scene_states'][i]['gcs_video_paths'] = generated_clips_data
                 logger.info(f"Initial video data generated for Scene {i}: {generated_clips_data}")
@@ -162,6 +162,11 @@ def _render_product_adgen_tab():
     st.info("This tab is under construction. Future features for product-centric ad generation will appear here!")
 
 
+def _render_vto_tab():
+    """Renders the content for the 'VTO' tab."""
+    vto_page.render_vto_page()
+
+
 def main():
     """
     Main function to run the Streamlit application.
@@ -175,13 +180,16 @@ def main():
     st.subheader("Craft your perfect video ad with AI")
 
     # Create tabs
-    tab_quick_adgen, tab_product_adgen = st.tabs(["Quick AdGen", "Product AdGen"])
+    tab_quick_adgen, tab_product_adgen, tab_vto = st.tabs(["Quick AdGen", "Product AdGen", "VTO"])
 
     with tab_quick_adgen:
         _render_quick_adgen_tab()
 
     with tab_product_adgen:
         _render_product_adgen_tab()
+
+    with tab_vto:
+        _render_vto_tab()
 
 
 if __name__ == "__main__":
