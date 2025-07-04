@@ -173,11 +173,8 @@ def main():
     Orchestrates page navigation and backend workflow steps within tabs.
     """
     _initialize_session_state()
-    st.set_page_config(layout="wide", page_title="AI Ad Generator")  # Page config for browser tab title
-
-    # Main application title and subheader, placed before tabs
+    st.set_page_config(layout="wide", page_title="AI Ad Generator")
     st.title("📽️ AI Ad Generator")
-    st.subheader("Craft your perfect video ad with AI")
 
     # Create tabs
     tab_quick_adgen, tab_product_adgen, tab_vto = st.tabs(["Quick AdGen", "Product AdGen", "VTO"])

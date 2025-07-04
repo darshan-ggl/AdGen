@@ -22,9 +22,6 @@ def render_input_page() -> Optional[Dict[str, Any]]:
     """
     logger.info("Rendering input page...")
 
-    # st.title("✨ AI Ad Generator ✨")
-    # st.subheader("Craft your perfect video ad with AI")
-
     # Use a form to group inputs for potential submission handling
     with st.form(key='ad_input_form'):
         st.header("Ad Content")

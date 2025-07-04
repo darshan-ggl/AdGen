@@ -28,8 +28,8 @@ def _initialize_vto_session_states():
 
 def _render_vto_header_and_instructions():
     """Renders the header and instructions for the VTO page."""
-    st.header("Virtual Try-On (VTO)")
-    st.subheader("See your product on a generated person and create a video.")
+    # st.header("Virtual Try-On (VTO)")
+    # st.subheader("See your product on a generated person and create a video.")
 
     st.markdown("""
     **Instructions:**
@@ -61,13 +61,6 @@ def _handle_person_image_upload_or_generation():
     """Handles person image upload or AI generation logic and display."""
     st.text("Person Image (Optional)")
 
-    st.session_state['vto_generate_person_ai'] = st.checkbox(
-        "Generate with AI",
-        value=st.session_state['vto_generate_person_ai'],
-        key="vto_ai_person_toggle",
-        help="Check to have AI generate a person instead of uploading."
-    )
-
     current_uploaded_person_image = None
     if not st.session_state['vto_generate_person_ai']:
         current_uploaded_person_image = st.file_uploader(
@@ -80,6 +73,13 @@ def _handle_person_image_upload_or_generation():
             st.session_state['vto_person_image_bytes'] = current_uploaded_person_image.read()
         else:
             st.session_state['vto_person_image_bytes'] = None
+
+    st.session_state['vto_generate_person_ai'] = st.checkbox(
+        "Generate with AI",
+        value=st.session_state['vto_generate_person_ai'],
+        key="vto_ai_person_toggle",
+        help="Check to have AI generate a person instead of uploading."
+    )
 
     if st.session_state['vto_generate_person_ai']:
         st.session_state['vto_person_gen_prompt'] = st.text_input(
@@ -109,8 +109,10 @@ def _handle_person_image_upload_or_generation():
 
 
 def _render_perform_vto_button():
-    """Renders the 'Perform Virtual Try-On' button and handles its logic."""
-    st.markdown("---")
+    """Renders the 'Perform Virtual Try-On' button and result for column layout."""
+    st.text("Virtual Try-On")
+    st.markdown("")  # Add some spacing
+
     if st.button("Perform Virtual Try-On", key="vto_perform_button",
                  disabled=st.session_state['vto_product_image_bytes'] is None):
         if st.session_state['vto_product_image_bytes']:
@@ -124,19 +126,20 @@ def _render_perform_vto_button():
             if vto_result_bytes:
                 st.session_state['vto_result_image_bytes'] = vto_result_bytes
                 st.session_state['vto_generated_videos_data'] = []
-                st.success("Virtual Try-On completed!")
             else:
                 st.error("Virtual Try-On failed. Check inputs.")
         else:
             st.error("Upload a product image to perform VTO.")
 
+    # Display VTO result in the same column
+    if st.session_state['vto_result_image_bytes']:
+        st.image(st.session_state['vto_result_image_bytes'], caption="VTO Result", width=200)
+
 
 def _render_vto_result_and_video_generation():
-    """Renders the VTO result image and video generation functionality."""
+    """Renders only the video generation functionality."""
     if st.session_state['vto_result_image_bytes']:
-        st.markdown("---")
-        st.subheader("Virtual Try-On Result")
-        st.image(st.session_state['vto_result_image_bytes'], caption="VTO Result")
+        st.subheader("Video Generation")
 
         if st.button("Generate Video", key="vto_generate_video_button"):
             with st.spinner("Generating video from VTO result..."):
@@ -167,27 +170,36 @@ def _render_vto_result_and_video_generation():
                             else:
                                 st.warning(f"Clip {video_index + 1} URL not available.")
 
-    elif st.session_state['vto_product_image_bytes'] is None:
-        st.info("Upload a product image to enable the 'Perform Virtual Try-On' button.")
-
 
 def render_vto_page():
     """
-    Renders the Virtual Try-On (VTO) page.
+    Renders the Virtual Try-On (VTO) page with fixed-size columns.
     """
     logger.info("Rendering VTO page.")
 
     _initialize_vto_session_states()
-    _render_vto_header_and_instructions()
+    FIXED_COLUMN_HEIGHT = 650
 
-    col_product_image, col_person_image = st.columns(2)
-    with col_product_image:
-        _handle_product_image_upload()
-    with col_person_image:
-        _handle_person_image_upload_or_generation()
+    # Add a main container with a border around the entire page content
+    with st.container(border=True):
+        _render_vto_header_and_instructions()
 
-    _render_perform_vto_button()
-    _render_vto_result_and_video_generation()
+        col_product_image, col_person_image, col_perform_vto = st.columns(3)
+        with col_product_image:
+            with st.container(height=FIXED_COLUMN_HEIGHT):
+                _handle_product_image_upload()
+
+        with col_person_image:
+            with st.container(height=FIXED_COLUMN_HEIGHT):
+                _handle_person_image_upload_or_generation()
+
+        with col_perform_vto:
+            with st.container(height=FIXED_COLUMN_HEIGHT):
+                _render_perform_vto_button()
+
+        st.markdown("---")  # Optional separator for visual distinction
+        with st.container(border=True):
+            _render_vto_result_and_video_generation()
 
 
 if __name__ == '__main__':
