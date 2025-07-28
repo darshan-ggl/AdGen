@@ -3,7 +3,6 @@
 import base64
 import logging
 import streamlit as st
-from typing import List, Dict, Any, Optional
 
 from src.backend import vto_ops
 
@@ -24,6 +23,21 @@ def _initialize_vto_session_states():
         st.session_state['vto_person_gen_prompt'] = ""
     if 'vto_generated_videos_data' not in st.session_state:
         st.session_state['vto_generated_videos_data'] = []
+    if 'vto_hide_result_image' not in st.session_state:
+        st.session_state['vto_hide_result_image'] = False
+
+
+def _render_scrollable_image(image_bytes, caption: str, height: int = 500):
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
+    st.markdown(
+        f"""
+        <div style="height:{height}px; overflow-y:auto; border:1px solid #ccc; padding:4px">
+            <img src="data:image/png;base64,{b64}" style="width:100%;" />
+            <div style="text-align:center; font-size:smaller; margin-top:4px;">{caption}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def _render_vto_header_and_instructions():
@@ -52,7 +66,7 @@ def _handle_product_image_upload():
 
     if uploaded_product_image:
         st.session_state['vto_product_image_bytes'] = uploaded_product_image.read()
-        st.image(uploaded_product_image, caption="Product Preview", width=200)
+        _render_scrollable_image(st.session_state['vto_product_image_bytes'], caption="Product Preview")
     else:
         st.session_state['vto_product_image_bytes'] = None
 
@@ -103,7 +117,7 @@ def _handle_person_image_upload_or_generation():
                 st.warning("Provide a prompt for AI person generation.")
 
     if st.session_state['vto_person_image_bytes']:
-        st.image(st.session_state['vto_person_image_bytes'], caption="Person Preview", width=200)
+        _render_scrollable_image(st.session_state['vto_person_image_bytes'], caption="Person Preview")
     elif not st.session_state['vto_generate_person_ai'] and current_uploaded_person_image is None:
         st.info("Upload a person image or generate with AI.")
 
@@ -126,19 +140,21 @@ def _render_perform_vto_button():
             if vto_result_bytes:
                 st.session_state['vto_result_image_bytes'] = vto_result_bytes
                 st.session_state['vto_generated_videos_data'] = []
+                st.session_state['vto_hide_result_image'] = False  # <--- set flag to hide image
             else:
                 st.error("Virtual Try-On failed. Check inputs.")
         else:
             st.error("Upload a product image to perform VTO.")
 
-    # Display VTO result in the same column
-    if st.session_state['vto_result_image_bytes']:
-        st.image(st.session_state['vto_result_image_bytes'], caption="VTO Result", width=200)
+    # Show image only if explicitly allowed
+    if st.session_state['vto_result_image_bytes'] and not st.session_state.get('vto_hide_result_image', False):
+        _render_scrollable_image(st.session_state['vto_result_image_bytes'], caption="VTO Result")
 
 
 def _render_vto_result_and_video_generation():
     """Renders only the video generation functionality."""
     if st.session_state['vto_result_image_bytes']:
+        st.session_state['vto_hide_result_image'] = True
         st.subheader("Video Generation")
 
         if st.button("Generate Video", key="vto_generate_video_button"):
@@ -197,7 +213,6 @@ def render_vto_page():
             with st.container(height=FIXED_COLUMN_HEIGHT):
                 _render_perform_vto_button()
 
-        st.markdown("---")  # Optional separator for visual distinction
         with st.container(border=True):
             _render_vto_result_and_video_generation()
 
