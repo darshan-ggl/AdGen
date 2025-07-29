@@ -7,7 +7,7 @@ import streamlit as st
 from src.backend import ad_generator
 from src.backend import video_ops
 from src.backend.utils import load_config
-from src.frontend import input_page, output_page, vto_page
+from src.frontend import input_page, output_page, vto_page, product_page
 
 # Set up logging for the main app
 logging.basicConfig(level=logging.INFO)
@@ -81,22 +81,7 @@ def _trigger_initial_video_generation():
     ad_input_data = st.session_state['ad_input_data']
     aspect_ratio = ad_input_data.get('aspect_ratio', '16:9')
     person_generation = ad_input_data.get('person_generation', 'allow_adult')
-    uploaded_image = ad_input_data.get('uploaded_image', None)
-    product_name = ad_input_data.get('product_name', '')
     negative_prompt = ad_input_data.get('negative_prompt', '')
-
-    image_gcs_uri = None
-    if uploaded_image:
-        logger.info(f"Uploaded image detected: {uploaded_image.name}. Uploading to GCS.")
-        image_destination_blob = f"{config['imagen']['image_output_dir']}"
-        image_gcs_uri = video_ops.upload_file_to_gcs(uploaded_image, image_destination_blob)
-        if image_gcs_uri:
-            logger.info(f"Image uploaded to GCS: {image_gcs_uri}")
-        else:
-            logger.error("Failed to upload image to GCS.")
-            st.error("Failed to upload product image. Video generation may be affected.")
-
-    metadata = {'product_name': product_name} if product_name else None
 
     try:
         with st.spinner("Generating initial video clips for all scenes... This may take a few minutes."):
@@ -111,9 +96,7 @@ def _trigger_initial_video_generation():
                     aspect_ratio=aspect_ratio,
                     duration_seconds=duration,
                     person_generation=person_generation,
-                    metadata=metadata,
-                    negative_prompt=negative_prompt,
-                    image_data=image_gcs_uri
+                    negative_prompt=negative_prompt
                 )
                 st.session_state['scene_states'][i]['gcs_video_paths'] = generated_clips_data
                 logger.info(f"Initial video data generated for Scene {i}: {generated_clips_data}")
@@ -157,16 +140,6 @@ def _render_quick_adgen_tab():
         output_page.render_output_page(st.session_state['output_data'])
 
 
-def _render_product_adgen_tab():
-    """Renders the content for the 'Product AdGen' tab."""
-    st.info("This tab is under construction. Future features for product-centric ad generation will appear here!")
-
-
-def _render_vto_tab():
-    """Renders the content for the 'VTO' tab."""
-    vto_page.render_vto_page()
-
-
 def main():
     """
     Main function to run the Streamlit application.
@@ -183,10 +156,11 @@ def main():
         _render_quick_adgen_tab()
 
     with tab_product_adgen:
-        _render_product_adgen_tab()
+        st.info("This tab is under construction. Future features for product-centric ad generation will appear here!")
+        product_page.render_product_page()
 
     with tab_vto:
-        _render_vto_tab()
+        vto_page.render_vto_page()
 
 
 if __name__ == "__main__":
