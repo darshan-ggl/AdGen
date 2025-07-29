@@ -70,15 +70,3 @@ def upload_file_to_gcs(file_object: BinaryIO, gcs_destination_path: str) -> Opti
     except Exception as e:
         logger.error(f"Error uploading file to GCS: {gcs_destination_path}: {e}")
         return None
-
-
-def generate_signed_url(gcs_file_path: str):
-    if gcs_file_path.startswith("gs://"):
-        gcs_file_path = gcs_file_path.replace("gs://", "")
-    bucket_name, blob_name = gcs_file_path.split('/', 1)
-
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(blob_name)
-    url = blob.generate_signed_url(version="v4", expiration=3600)
-    return url
