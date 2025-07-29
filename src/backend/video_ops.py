@@ -11,7 +11,7 @@ from google import genai
 from google.cloud import storage
 from google.genai.types import GenerateVideosConfig, Image
 
-from src.backend.utils import load_config, upload_file_to_gcs, generate_signed_url
+from src.backend.utils import load_config, upload_file_to_gcs
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -223,8 +223,8 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
             with open(temp_file_path, 'rb') as source_file:
                 uploaded_file_path = upload_file_to_gcs(file_object=source_file, gcs_destination_path=output_location)
 
-            signed_url = generate_signed_url(uploaded_file_path)
-            return signed_url
+            http_url = uploaded_file_path.replace("gs://", "https://storage.cloud.google.com/")
+            return http_url
 
     except ffmpeg.Error as e:
         logger.error('ffmpeg error:')
