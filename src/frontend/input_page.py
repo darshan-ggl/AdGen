@@ -23,11 +23,10 @@ def render_input_page() -> Optional[Dict[str, Any]]:
     # Dropdown with examples
     examples = [
         "🧪 Try a sample ad idea",
-        "Anti-aging serum for women 30+. Before/after glowing skin transformation. Soft morning light, close-up shots with water droplets and botanicals. Spa-like atmosphere.",
+        "Lifestyle sport shoes for the daily commuter. Navigating a bustling city from the subway to the street. Focus on light, quick steps and the shoe's cushioning on hard pavement. Bright, morning light with an energetic, urban feel."
+        "Luxury oud and spice perfume. Product showcase on a dark wood surface, caught in a single beam of warm light. Focus on the bottle's heavy glass and gold details. Quiet, rich, and mysterious mood.",
         "Energy drink for gamers and athletes. Dynamic neon-lit action scenes cutting between gaming setup and skateboarding. Dark background with electric blue accents.",
-        "Food delivery app. Cozy home, person in pajamas ordering on phone. Steaming pizza arrives quickly. Warm lighting, show app interface and satisfied expressions.",
         "Luxury Swiss watch for professionals. Boardroom handshake deals at sunset. Focus on wrist shots during success moments. Gold accents, tailored suit.",
-        "Kids learning app ages 5-10. Bright cartoon characters teaching math. Laughing kids with tablets, approving parents in background. Rainbow colors, playful animations."
     ]
 
     # Track current input

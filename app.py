@@ -157,7 +157,7 @@ def main():
 
     with tab_product_adgen:
         st.info("This tab is under construction. Future features for product-centric ad generation will appear here!")
-        product_page.render_product_page()
+        # product_page.render_product_page()
 
     with tab_vto:
         vto_page.render_vto_page()
