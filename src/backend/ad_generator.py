@@ -1,4 +1,5 @@
 """Ad Generator"""
+import time
 import json
 import logging
 
@@ -71,14 +72,13 @@ def get_scene_prompts(ad_idea: str) -> list:
     )
 
     # Generate Ad script
-    import time
     t1 = time.time()
     logging.info("Generating Ad script")
     script_prompt = generate_script_prompt(ad_idea=ad_idea, max_scenes=4, ad_duration_sec=15)
     generated_script = call_gemini(model=model, prompt=script_prompt)
     generated_script_json = json.loads(generated_script)
     logging.debug(f"\ngenerated_script_json: \n{json.dumps(generated_script_json)}")
-    print("time taken: ", time.time() - t1)
+    logger.debug(f"time taken: {time.time() - t1}")
 
     # TODO: Add last scene consistency logic using image
 
@@ -93,9 +93,9 @@ def get_scene_prompts(ad_idea: str) -> list:
     generated_veo_prompts_list = json.loads(generated_veo_prompts)
 
     for prompt in generated_veo_prompts_list:
-        print(prompt)
-        print("-" * 100)
-    print("time taken: ", time.time() - t2)
-    print("total time taken: ", time.time() - t1)
+        logger.info(prompt)
+
+    logger.debug(f"time taken: {time.time() - t2}")
+    logger.debug(f"total time taken: {time.time() - t1}")
 
     return generated_veo_prompts_list

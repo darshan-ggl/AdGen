@@ -397,3 +397,280 @@ Example:
 ]
 """
     return prompt
+
+
+def person_generation_prompt(user_prompt: str):
+    return f"""
+    You are tasked with creating an Imagen4-compatible prompt for generating a person image suitable for virtual clothing try-on.
+
+    USER INPUT: {user_prompt}
+    
+    REQUIREMENTS TO INCORPORATE:
+    
+    PERSON SPECIFICATIONS:
+    - If age not specified: adult (25-35 years old)
+    - If ethnicity/skin color not specified: diverse, natural skin tone
+    - If hair not specified: neat, well-styled hair (medium length)
+    - If gender not specified: gender-neutral appearance
+    - If body type not specified: average build, fit appearance
+    - Natural, pleasant facial expression
+    - Clear facial features, good bone structure
+    
+    POSE & POSITIONING (if not specified by user):
+    - Standing straight, facing directly forward
+    - Full body shot from head to feet
+    - Arms relaxed at sides or slightly away from body
+    - Feet shoulder-width apart, balanced stance
+    - Body centered in frame
+    - No tilted poses unless specifically requested by user
+    
+    CLOTHING (if not specified by user):
+    - Simple t-shirt or basic shirt (solid colors like white, black, navy, gray)
+    - Classic jeans or simple pants/trousers
+    - Well-fitted, clean, wrinkle-free
+    - No complex patterns, logos, or designs
+    - Stick to basic casual wear only
+    
+    BACKGROUND & LIGHTING (if not specified by user):
+    - Clean, minimalist background
+    - Professional studio lighting
+    - Even lighting across entire body
+    - No shadows on clothing areas
+    - No distracting background elements
+    
+    TECHNICAL REQUIREMENTS (if not specified by user):
+    - Professional fashion photography style
+    - High resolution, sharp focus
+    - Full body portrait orientation (3:4 aspect ratio)
+    - Person as main subject, clearly visible
+    - Suitable for garment overlay technology
+    - Clean composition, uncluttered
+    
+    INSTRUCTIONS:
+    Generate a concise, Imagen4-compatible prompt that combines the user input with the above requirements. Follow Imagen4 prompting best practices:
+    - Use clear, descriptive language
+    - Be specific about visual elements
+    - Keep it focused and not overly verbose
+    - Include technical photography terms
+    - Prioritize clarity over creativity
+    
+    Output only the final Imagen4 prompt, nothing else.
+    """
+
+
+def ad_idea_generation(ad_details_input):
+    return f"""
+    You are an expert creative director and ad concept artist. 
+    I will give you a single input string containing a product (and possibly some direction or details). 
+    Your task is to generate a single-paragraph ad idea that is highly **creative**, **unorthodox**, and **visually striking**.
+    
+    Do **not** generate a dull or standard ad. Avoid generic product showcases, slow pacing, or disconnected random scenes. 
+    Instead, think like an indie filmmaker, anime creator, meme-maker, or bold visual storyteller. 
+    The ad idea can be funny, emotional, surreal, animated, stylized, absurd, or genre-bending — but must feel **fresh**, **engaging**, and **entertaining**.
+    Don’t write scene-by-scene breakdowns. Just a vivid paragraph describing the **core idea of the ad**, its vibe and concept. 
+    Prioritize energy, originality, and memorability.
+    
+    Here’s the input string:
+    {ad_details_input}
+"""
+
+
+def scene_prompt_generation(ad_concept):
+    return f"""
+    You are an expert creative director and AI prompt engineer specializing in generative video. Your task is to take a single-paragraph ad concept and transform it into a series of hyper-realistic, complex, and continuous scene prompts suitable for Google's Veo video generation model. You will adhere to the following strict rules:
+    
+    **Your instructions are as follows:**
+    
+    1.  **Deconstruct the Narrative:** First, break down the provided ad idea into a logical sequence of distinct scenes. Each scene must be designed to be a maximum of 8 seconds long and should flow seamlessly into the next.
+    
+    2.  **Craft Complex, Layered Prompts:** For each scene, you will write a single, comprehensive paragraph that serves as the prompt. This paragraph must be rich with detail, weaving together multiple layers of instruction to create a cinematic and evocative result. Combine the following elements into a single narrative description for each scene:
+          * **Subject(s):** Describe the characters in detail, including their appearance, age, ethnicity, clothing (specify textures and style), and their specific emotional state and micro-expressions. Ensure character consistency across all scenes.
+          * **Context:** Paint a vivid picture of the environment. Describe the location, time of day, weather, and specific objects. Think about what makes the setting unique.
+          * **Action:** Detail the specific actions of the subjects, including subtle gestures and interactions between them or with their environment.
+          * **Cinematic Style:** Define the visual aesthetic with precision. Reference specific film genres, directors (e.g., "in the style of Wes Anderson," "with the gritty realism of Denis Villeneuve"), or photographic techniques (e.g., "shot on 35mm film," "anamorphic lens flare," "Dutch angle").
+          * **Camera Direction:** Specify the camera's framing (e.g., "extreme close-up," "wide shot") and any movement (e.g., "a slow dolly zoom," "a frantic handheld tracking shot").
+          * **Ambiance & Lighting:** Describe the mood through lighting and color. Use evocative terms like "melancholic twilight," "warm golden hour light," "harsh neon glow," or "soft, diffused morning light." Specify the dominant color palette.
+
+    3.  **Mandate for Specificity: Assume the Model is Blind.** This is the most important rule. The generative model has no imagination. It cannot assume details. Vague terms are forbidden. You must be relentlessly specific.
+          * **DO NOT USE** ambiguous phrases like "a ball of some color," "a building of some shape," or "a normal car."
+          * **YOU MUST USE** concrete, fixed terminology. For example, instead of "a red ball," you must write "a glossy, crimson red playground ball, 10 inches in diameter, with a slightly worn rubber texture." Instead of "a normal car," you must write "a dented, forest green 1998 Toyota Camry with a peeling clear coat on the hood." Every element must be described with this level of precision.
+    
+    4.  **Rule of Strict Consistency: Replicate Key Descriptions.** If a character or a key object appears in multiple scenes, its detailed description **must be copied and pasted exactly** into every scene prompt where it appears. This creates a "master description" that ensures the model generates the exact same person or object every time. There is no memory between scenes, so this repetition is mandatory for continuity.
+    
+    5.  **Final Output Format:** Your final output must be a single, valid JSON array. Each object in the array represents one scene and must contain exactly two keys:
+    
+          * `scene_num`: The sequential number of the scene (integer).
+          * `scene_prompt`: The detailed, multi-layered descriptive paragraph for the scene (string).
+    
+    Input Ad Concept:
+    ```{ad_concept}```
+"""
+
+
+def product_showcase_imagen_and_veo_prompt():
+    return """
+You are a generative AI that analyzes a product image and produces two specialized prompts in JSON:  
+- **"imagen_prompt"**: for generating ONLY a clean background scene (without the product) that will complement the product when composited together
+- **"veo_prompt"**: for animating the final composed image (background + product) in a short product showcase video (5–8s, Veo-3 style)
+
+## Important Context:
+- **INPUT**: You receive an image containing a product
+- **IMAGEN OUTPUT**: Background scene only (product will be composited later)
+- **VEO INPUT**: The composed image (generated background + original product)
+- **VEO OUTPUT**: Animated product showcase video
+
+## Steps:
+
+### 1. Product Analysis
+Analyze the input product image and describe:
+- **Product type** (e.g., t-shirt, phone, shoe, perfume bottle, electronics)
+- **Color palette** (primary, secondary, accent colors)
+- **Material properties** (glossy, matte, transparent, metallic, fabric, leather, plastic)
+- **Shape and form** (geometric, organic, angular, curved)
+- **Texture details** (smooth, rough, ribbed, embossed, patterned)
+- **Style cues** (modern, vintage, luxury, minimalist, industrial)
+- **Size and scale** (relative dimensions, proportions)
+
+### 2. Imagen Prompt Guidelines & Best Practices
+
+**PURPOSE**: Generate ONLY the background scene (no product) that will complement the product when composited
+
+**Core Structure:**
+```
+[BACKGROUND ENVIRONMENT] + [LIGHTING SETUP] + [SURFACE/PLATFORM] + [COMPOSITION SPACE] + [STYLE] + [CAMERA] + [QUALITY]
+```
+
+**Essential Elements:**
+- **Background Environment**: 
+  - Setting type (studio backdrop, natural environment, architectural space)
+  - Surface/platform for product placement (table, pedestal, floating platform, ground)
+  - Environmental elements (walls, horizon, architectural details)
+  - Spatial depth and layers
+- **Lighting Setup**:
+  - Key light direction and quality (soft studio lighting, natural window light)
+  - Fill lighting to eliminate harsh shadows
+  - Accent/rim lighting positions
+  - Color temperature (warm tungsten, cool daylight, neutral)
+- **Surface & Platform Details**:
+  - Material (marble, wood, metal, glass, fabric)
+  - Texture (smooth, rough, reflective, matte)
+  - Color that complements product
+  - Size and proportion for product placement
+- **Composition Space**:
+  - Empty space reserved for product placement
+  - Rule of thirds grid consideration
+  - Leading lines directing to product area
+  - Negative space balance
+- **Style Parameters**:
+  - Photorealistic studio photography
+  - Commercial product photography aesthetic
+  - Color grading that enhances product colors
+- **Camera Settings**:
+  - Lens type (85mm portrait, 50mm standard)
+  - Depth of field (shallow to blur background, deep for context)
+  - Perspective height (eye-level, slightly elevated)
+- **Quality Modifiers**: "high resolution," "professional product photography," "commercial studio quality"
+
+**Advanced Techniques:**
+- **Complementary Colors**: Choose background colors that make product pop
+- **Material Contrast**: Juxtapose different textures (smooth product on rough surface)
+- **Atmospheric Depth**: Subtle gradients, soft shadows for dimension
+- **Brand Alignment**: Luxury, minimal, industrial, or organic aesthetic
+- **Contextual Relevance**: Environment that tells product story without distraction
+
+
+### 3. Veo-3 Prompt Guidelines & Best Practices
+
+**PURPOSE**: Animate the final composed image (background + product) for a compelling product showcase
+
+**Core Structure:**
+```
+[COMPOSED SCENE SETUP] + [CAMERA MOVEMENT] + [LIGHTING CHANGES] + [PRODUCT INTERACTION] + [DURATION/PACING] + [AUDIO/ATMOSPHERE]
+```
+
+**Essential Elements:**
+
+**Composed Scene Description:**
+- Describe the product positioned in the generated background
+- Initial state: "Product elegantly placed on [surface] in [environment]"
+- Spatial relationships between product and background elements
+- Overall composition and framing
+
+**Camera Movement (Choose 1-2 max):**
+- **Dolly**: "slow dolly in toward product," "smooth dolly out revealing full scene"
+- **Pan**: "gentle pan right showcasing product," "sweeping pan across composition"
+- **Tilt**: "subtle tilt up revealing product majesty," "dramatic tilt down to product"
+- **Zoom**: "slow zoom in highlighting product details," "gradual zoom out for context"
+- **Orbit**: "circular orbit around product," "partial orbit revealing product angles"
+- **Track**: "tracking shot following product form," "smooth lateral tracking"
+
+**Lighting Dynamics:**
+- **Transitions**: "lighting gradually brightens on product," "shadows shift across background"
+- **Product Highlighting**: "spotlight sweeps across product surface," "rim lighting emerges around product edges"
+- **Reflections**: "light catches product material," "subtle reflections appear on surface"
+- **Color shifts**: "warm to cool transition," "golden hour effect on scene"
+
+**Product Interaction:**
+- **Subtle movements**: "product gently rotates," "slight floating motion," "elegant sway"
+- **Reveal techniques**: "product emerges from soft shadow," "focus pulls to product details"
+- **Material showcase**: "light reveals product texture," "surface catches and reflects light"
+- **Scale emphasis**: "camera reveals product proportions," "close-up details then wide shot"
+
+**Pacing & Duration:**
+- **Timing**: "5-second sequence," "8-second duration"
+- **Rhythm**: "slow and steady reveal," "gradual acceleration," "smooth deceleration"
+- **Keyframes**: "starts with wide shot... transitions to close-up... ends with hero angle"
+
+**Audio & Atmosphere:**
+- **Ambient sound**: "soft atmospheric hum," "gentle whoosh," "studio ambiance"
+- **Product sounds**: "subtle swoosh during rotation," "gentle chime," "soft material sounds"
+- **Musical elements**: "ethereal tones," "modern beat," "luxury ambiance"
+
+**Advanced Veo-3 Techniques:**
+
+**Cinematography:**
+- **Shot progression**: "establishing shot of scene," "product close-up," "macro detail," "final hero shot"
+- **Lens effects**: "shallow focus on product," "deep focus for context," "bokeh," "lens flare"
+- **Framing**: "product as hero subject," "background as supporting element"
+- **Composition**: "rule of thirds with product," "leading lines to product," "symmetrical framing"
+
+**Visual Effects:**
+- **Particle systems**: "floating particles around product," "light rays," "sparkles"
+- **Atmospheric effects**: "mist," "smoke," "light beams enhancing product"
+- **Transitions**: "fade in/out," "dissolve," "wipe"
+
+**Emotional Storytelling:**
+- **Mood**: "aspirational," "premium," "accessible," "innovative"
+- **Narrative arc**: Product introduction → feature highlight → final impression
+- **Brand personality**: Luxury, playful, professional, cutting-edge
+
+**Technical Specifications:**
+- **Resolution**: "4K quality," "high definition"
+- **Frame rate**: "smooth 24fps," "cinematic 30fps"
+- **Color grading**: "commercial grade," "film-like," "vibrant"
+
+**Common Pitfalls to Avoid:**
+- Don't use instructive language ("don't show," "avoid")
+- Avoid over-complicating with too many simultaneous movements
+- Don't specify exact timing beyond 5-8 seconds
+- Avoid contradictory camera movements
+- Don't over-describe static elements
+
+**Best Practices:**
+- Use "this then that" sequential structure for complex actions
+- Be specific about camera positioning and movement speed
+- Include atmospheric and audio elements for immersion
+- Specify the emotional tone and brand feeling
+- Use cinematic terminology for professional results
+- Test with shorter, simpler prompts first
+
+## 4. Output Format
+
+Return exactly valid JSON with keys:  
+```json
+{
+  "imagen_prompt": "Background generation prompt (NO product, only environment/setting that will complement the product)",
+  "veo_prompt": "Video animation prompt (assumes product is composited on the generated background)"
+}
+```
+    """

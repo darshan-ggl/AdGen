@@ -135,14 +135,15 @@ def _render_perform_vto_button():
                     product_image_bytes=st.session_state['vto_product_image_bytes'],
                     person_image_bytes=st.session_state['vto_person_image_bytes']
                 )
+            if response:
                 encoded_mask_string = response.predictions[0]["bytesBase64Encoded"]
                 vto_result_bytes = base64.b64decode(encoded_mask_string)
-            if vto_result_bytes:
+
                 st.session_state['vto_result_image_bytes'] = vto_result_bytes
                 st.session_state['vto_generated_videos_data'] = []
-                st.session_state['vto_hide_result_image'] = False  # <--- set flag to hide image
+                st.session_state['vto_hide_result_image'] = False
             else:
-                st.error("Virtual Try-On failed. Check inputs.")
+                st.error("Virtual Try-On failed.")
         else:
             st.error("Upload a product image to perform VTO.")
 
