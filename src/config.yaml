@@ -4,17 +4,18 @@ project:
   location: global
 
 gemini:
-  model_name: "gemini-2.0-flash"
+  model_name: "gemini-2.5-flash"
   batch_size: 3500  # token count
 
 imagen:
   model_name: "imagen-3.0-generate-002"
-  image_output_dir: "gs://veo2-exp/AdGen/asset"
+  edit_model_name: "imagen-3.0-capability-001"
+  image_output_dir: "gs://ai-ad-gen-exp/AdGen/asset"
 
 veo:
   model_name: "veo-2.0-generate-001"
   number_of_videos:
-  veo_output_dir: "gs://veo2-exp/AdGen/output_clips"
+  veo_output_dir: "gs://ai-ad-gen-exp/AdGen/output_clips"
 
   prompts:
     - The camera moves in a slow dolly shot, revealing the opulence of a Renaissance palace chamber adorned with

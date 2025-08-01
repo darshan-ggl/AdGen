@@ -133,7 +133,7 @@ def generate_video_clip(
         time.sleep(10)
         operation = client.operations.get(operation)
 
-    print("operation: ", operation)
+    logger.debug(f"operation: {operation}")
     logger.info("Operation Completed!")
 
     generated_clips_data = []
@@ -230,8 +230,8 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
         logger.error('ffmpeg error:')
         logger.error(e.stdout.decode('utf8'))
         logger.error(e.stderr.decode('utf8'))
-        print("An error occurred during ffmpeg processing. Check logs for details.")
-        print("This might be because the video streams are not compatible for direct copying.")
+        logger.info("An error occurred during ffmpeg processing. Check logs for details.")
+        logger.info("This might be because the video streams are not compatible for direct copying.")
 
     # finally:
     #     if temp_list_filepath and os.path.exists(temp_list_filepath):
