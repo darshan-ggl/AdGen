@@ -19,51 +19,6 @@ logger = logging.getLogger(__name__)
 config = load_config()
 
 
-# def generate_video_clip(
-#         prompt: str,
-#         output_location: str,
-#         aspect_ratio: str,
-#         duration_seconds: str,
-#         person_generation: str,
-#         negative_prompt: str = None,
-#         image_gcs_uri: str = None,
-#         metadata: dict = None,
-# ):
-#     # Simulate the time taken by a video generation API call
-#     import time
-#     time.sleep(5)
-
-#     generated_clips_data = []
-#     storage_client_instance = storage.Client()
-
-#     parsed_url = urlparse(output_location)
-#     bucket_name = parsed_url.netloc
-#     prefix = parsed_url.path.lstrip('/')
-
-#     try:
-#         bucket = storage_client_instance.get_bucket(bucket_name)
-#         blobs = bucket.list_blobs(prefix=prefix)
-
-#         for blob in blobs:
-#             if blob.name == prefix + "/":
-#                 continue
-
-#             gs_uri = f"gs://{bucket_name}/{blob.name}"
-#             http_url = f"https://storage.cloud.google.com/{bucket_name}/{blob.name}"
-
-#             generated_clips_data.append({
-#                 'gs_uri': gs_uri,
-#                 'http_url': http_url
-#             })
-
-#     except Exception as e:
-#         logging.error(f"Error listing blobs or generating signed URLs at {output_location}: {e}")
-#         return []
-
-#     logging.info(f"Simulated generated video data (gs_uri and signed http_url) by listing: {generated_clips_data}")
-#     return generated_clips_data
-
-
 def generate_video_clip(
         prompt: str,
         output_location: str,
@@ -109,7 +64,7 @@ def generate_video_clip(
     # Handle duration
     duration_seconds = max(5, min(duration_seconds, 8))
 
-    client = genai.Client()
+    client = genai.Client(vertexai=True, project=config["project"]["id"], location=config["project"]["location"])
     operation = client.models.generate_videos(
         model=config["veo"]["model_name"],
         image=image,
@@ -133,8 +88,8 @@ def generate_video_clip(
         time.sleep(10)
         operation = client.operations.get(operation)
 
-    logger.debug(f"operation: {operation}")
     logger.info("Operation Completed!")
+    logger.info(f"operation: {operation}")
 
     generated_clips_data = []
     for video_result_item in operation.result.generated_videos:
@@ -143,12 +98,13 @@ def generate_video_clip(
         parts = video_uri[len("gs://"):].split('/', 1)
         bucket_name = parts[0]
         blob_name = parts[1]
-        http_url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
+        http_url = f"https://storage.googleapis.com/{bucket_name}/{blob_name}"
 
         generated_clips_data.append({
             'gs_uri': video_uri,
             'http_url': http_url
         })
+    logger.info(f"Generated clips: {generated_clips_data}")
     return generated_clips_data
 
 
@@ -223,7 +179,7 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
             with open(temp_file_path, 'rb') as source_file:
                 uploaded_file_path = upload_file_to_gcs(file_object=source_file, gcs_destination_path=output_location)
 
-            http_url = uploaded_file_path.replace("gs://", "https://storage.cloud.google.com/")
+            http_url = uploaded_file_path.replace("gs://", "https://storage.googleapis.com/")
             return http_url
 
     except ffmpeg.Error as e:
