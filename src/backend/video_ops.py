@@ -98,7 +98,7 @@ def generate_video_clip(
         parts = video_uri[len("gs://"):].split('/', 1)
         bucket_name = parts[0]
         blob_name = parts[1]
-        http_url = f"https://storage.googleapis.com/{bucket_name}/{blob_name}"
+        http_url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
 
         generated_clips_data.append({
             'gs_uri': video_uri,
@@ -179,7 +179,7 @@ def merge_video_clips(gcs_video_urls, output_location, temp_dir="temp_videos"):
             with open(temp_file_path, 'rb') as source_file:
                 uploaded_file_path = upload_file_to_gcs(file_object=source_file, gcs_destination_path=output_location)
 
-            http_url = uploaded_file_path.replace("gs://", "https://storage.googleapis.com/")
+            http_url = uploaded_file_path.replace("gs://", "https://storage.cloud.google.com/")
             return http_url
 
     except ffmpeg.Error as e:
